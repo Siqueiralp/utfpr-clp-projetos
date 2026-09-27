@@ -14,6 +14,11 @@ e **6 timers compartilhados por duracao**. Os enderecos M/T internos ficaram
 fora da Symbol Table para evitar cadastro manual desnecessario, mantendo a
 estrutura LAD/GRAFCET explicita.
 
+Uma segunda revisao arquitetural aplicou estado compacto em SCL, registradores
+em `BYTE`, timers compartilhados e `OB35` deterministico no Projeto 10.
+Veja [ARQUITETURA_PERFORMANCE.md](ARQUITETURA_PERFORMANCE.md) para as referencias
+e decisoes projeto a projeto.
+
 As fontes ainda precisam ser compiladas no STEP 7 e testadas no PLCSIM
 ou no CLP da bancada antes de serem consideradas validadas.
 

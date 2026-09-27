@@ -41,7 +41,6 @@ VAR_TEMP
     duracao : S5TIME;
     fimTempo : BOOL;
     resultado : S5TIME;
-    millis : DINT;
 END_VAR
 BEGIN
     IF I0.0 AND NOT anteriorBotao THEN pedido := TRUE; END_IF;
@@ -129,8 +128,7 @@ BEGIN
     Q0.7 := NOT s6.X;
 
     IF s7.X THEN
-        millis := TIME_TO_DINT(SFC64());
-        Q0.7 := (millis MOD 1000) < 500;
+        Q0.7 := M10.5;
     END_IF;
 END_FUNCTION_BLOCK
 

@@ -1,128 +1,109 @@
 # Projetos de CLP - sequencia 1 a 14
 
-Fontes para **SIMATIC Manager / STEP 7 Classic (S7-300)**. A referencia de
-hardware usada no Projeto 1 e CPU 314C-2 DP. Cada pasta contem a entrega
-correspondente ao item de mesmo numero no enunciado da disciplina.
+Alvo: **SIMATIC Manager / STEP 7 Classic / S7-300**.
 
-| Projeto | Arquivo principal | Conceito exigido |
+| Projeto | Conceito principal | Recursos centrais da revisao minima |
 | --- | --- | --- |
-| 1 | `Projeto1/Projeto1_TOF.awl` | Semaforo LAD com TOF |
-| 2 | `Projeto2/Projeto2_TON.awl` | Semaforo LAD com TON |
-| 3 | `Projeto3/Projeto3_Byte.scl` | Estado inteiro e escrita de `QB0` |
-| 4 | `Projeto4/Projeto4_Contador.scl` | Um timer, contador e comparacoes |
-| 5 | `Projeto5/Projeto5_Inteligente.scl` | Fluxo por minuto e alerta noturno |
-| 6 | `Projeto6/Projeto6_Matrizes_TOF.scl` | UDT, matriz de estados/tempos e um TOF |
-| 7 | `Projeto7/Projeto7_Shift_Register_BIT.scl` | FB de deslocamento de 8 bits |
-| 8 | `Projeto8/Projeto8_SaoJose.scl` | 13 lampadas, bit 1 sequencial |
-| 9 | `Projeto9/Projeto9_Maceio.scl` | 13 lampadas, bit 0 sequencial |
-| 10 | `Projeto10/Projeto10_Motor.scl` | Quatro rampas e tres patamares em OB35 |
-| 11 | `Projeto11/Projeto11_Grafcet.scl` | Passos GRAFCET com ramificacao OU |
-| 12 | `Projeto12/Projeto12_CTUD.scl` | FB contador crescente/decrescente IEC |
-| 13 | `Projeto13/Projeto13_Grafcet_LAD.awl` | GRAFCET Ladder passo a passo |
-| 14 | `Projeto14/Projeto14_ChaveReversora.scl` | Reversao automatica de 5 s e manual |
+| 1 | Semaforo LAD com TOF | **1 TOF**, 1 estado INT, pedido e controle minimo |
+| 2 | Semaforo LAD com TON | **1 TON**, 1 estado INT, pedido e controle minimo |
+| 3 | Estado inteiro / QB0 | **1 timer**, 4 variaveis persistentes |
+| 4 | Timer + contador | **1 timer + 1 contador**, conforme requisito |
+| 5 | Fluxo/minuto + noite | **1 timer + 2 contadores**; janela usa RTC |
+| 6 | UDT + matriz + TOF | **1 TOF**; tabela temporaria, 4 variaveis persistentes |
+| 7 | Shift register 8 bits | **0 timers**; estado = 1 BYTE |
+| 8 | 13 lampadas Sao Jose | **0 timers**; 1 FB107 + fase + contador + clock |
+| 9 | 13 lampadas Maceio | reutiliza o FB108 do Projeto 8 |
+| 10 | Rampas do motor | **0 timers**; M10.0 fornece tick de 100 ms |
+| 11 | GRAFCET com ramificacao OU | **1 estado INT + 1 timer** |
+| 12 | CTUD IEC | 2 memorias de borda + valor do contador |
+| 13 | GRAFCET LAD passo a passo | **1 TON**; bits de passo preservados pelo requisito |
+| 14 | Chave reversora | **3 variaveis persistentes + 1 timer** |
 
-## Tabela de simbolos minima
+## Symbol Table
 
-Os Projetos 1, 2 e 13 sao os unicos que trazem arquivo `.sdf`. Depois da
-revisao de simplificacao, cada SDF possui **somente 9 linhas**:
+Os Projetos 1, 2 e 13 possuem SDF com apenas **9 simbolos globais**:
 
-- `I0.0`: botoeira de pedestre;
-- `Q0.0..Q0.7`: oito lampadas.
+- `I0.0`;
+- `Q0.0..Q0.7`.
 
-Bits M e timers T internos nao precisam de simbolos globais para funcionar e,
-portanto, ficaram apenas como enderecos absolutos nas redes. Isso evita
-preencher dezenas de linhas no Symbol Editor.
-
-Os projetos escritos em SCL mantem seu estado interno nos DBs de instancia e
-tambem nao exigem uma tabela global de simbolos para essas variaveis.
-
-## Como importar
-
-1. Crie um **S7 Program diferente para cada projeto**, pois cada fonte contem
-   o seu proprio `OB1`. O Projeto 10 contem tambem `OB35` para a base de tempo
-   deterministica de 100 ms.
-2. Para `.awl`, use `Sources > Insert > External Source File`, compile e abra
-   o `OB1` em LAD. Importe o `.sdf` apenas para os projetos 1, 2 e 13.
-3. Para `.scl`, adicione a fonte em `Sources` e compile no editor S7-SCL.
-   A chamada `FBn.DBn()` no `OB1` cria o DB de instancia automaticamente.
-4. Os projetos 8 e 9 reutilizam `FB107`: compile antes o bloco da fonte do
-   Projeto 7 (sem o `OB1` desse projeto). O Projeto 9 reutiliza ainda `FB108`
-   da fonte do Projeto 8. O Projeto 14 reutiliza `FB111` do Projeto 11.
-5. Zere a memoria no PLCSIM antes de cada projeto. Confira a compilacao,
-   tempos, intertravamentos e o mapa de I/O antes de testar em bancada.
-
-## Projetos 1, 2 e 13 - semaforo
-
-`I0.0` e o pedido de pedestre. Em `QB0`, bits 0 a 2 sao
-verde/amarelo/vermelho da via 1; bits 3 a 5, da via 2; bits 6 e 7,
-verde/vermelho de pedestre.
-
-O ciclo normal e 30, 4, 2, 30, 4 e 2 segundos. O pedido fica pendente ate uma
-transicao segura; a travessia dura 15 s de verde + 5 s de vermelho piscante.
-
-As revisoes simplificadas compartilham timers por duracao:
-
-- `T0`: 30 s, usado pelas duas fases verdes;
-- `T1`: 4 s, usado pelas duas fases amarelas;
-- `T2`: 2 s, usado pelas duas fases de vermelho total;
-- `T3`: 15 s, verde do pedestre;
-- `T4`: 5 s, janela total do piscante.
-
-A alternancia de 500 ms nao usa mais timer: ela vem de `M10.5`, bit de
-**Clock Memory de 1 Hz**. Portanto cada projeto usa **5 timers**. O Projeto 1
-continua usando TOF; os Projetos 2 e 13, TON. O Projeto 13 preserva um bit por
-passo para continuar representando o GRAFCET explicitamente. Configure
-`MB10` como Clock Memory antes de simular.
-
-## Demais projetos
-
-Projeto 3 escreve os estados diretamente em BYTE. Projetos 4 e 6 continuam
-usando exatamente um timer conforme o requisito. O Projeto 4 gera pulsos de
-500 ms para o contador; o Projeto 6 usa `S_OFFDT` e tabelas em `UDT106`.
-
-Projeto 5 mede `I0.1` e `I0.2` em janelas de 60 s e escolhe verde de
-20 s (<20 veiculos/min), 40 s (20 a 40) ou 60 s (>40). Entre 22:00 e 06:00,
-lido pelo relogio da CPU (`SFC1`), as duas amarelas piscam. A revisao atual
-usa apenas dois timers: janela de fluxo e etapa. O pisca usa `M10.5`, e a
-leitura do RTC (`SFC1`) ocorre apenas na partida e em bordas de `M10.7`, em
-vez de ser executada a cada scan.
-
-Projeto 7: `I0.0` pulso frente, `I0.1` dado frente, `I0.2` pulso tras,
-`I0.3` dado tras, `I0.4` reset. O registrador interno e um unico `BYTE`,
-deslocado por `SHL/SHR`, e o `OB1` copia `DB107.Data` diretamente para `QB0`.
-
-Projetos 8 e 9: `Q0.0..Q0.5` sao 6 vermelhas, `Q0.6` e amarela,
-`Q1.0..Q1.5` sao 6 verdes. Os tempos sao parametros de `FB108.DB108`.
-Os grupos sao escritos em `QB0/QB1` e reutilizam o `BYTE` compactado do FB107.
-
-Projeto 10: `I0.0` inicia; `I0.1` para. A rampa roda no `OB35`, que deve estar
-configurado para **100 ms** nas propriedades da CPU. Nao ha mais timer T100.
-O `OB1` apenas espelha `DB110.Command` em `MW100` e envia a `PQW256`.
-
-Projeto 11 preserva os oito passos GRAFCET e a ramificacao OU, mas todos os
-passos mutuamente exclusivos compartilham **um unico `T110`**.
-
-Projeto 12: `I0.0` CU, `I0.1` CD, `I0.2` reset, `I0.3` load, PV=10.
-`Q0.0` QU, `Q0.1` QD e `MW100` CV.
-
-Projeto 14: `I0.0` manual frente, `I0.1` manual reverso, `I0.2`
-retoma automatico, `I0.3` para. `Q0.0` frente e `Q0.1` reverso.
+Estados e recursos internos nao sao cadastrados na Symbol Table.
 
 ## Clock Memory
 
-Os Projetos 1, 2, 3, 5, 6, 11 e 13 usam `M10.5` como clock de 1 Hz para
-pisca de 500 ms ligado / 500 ms desligado. Configure `MB10` como Clock Memory
-nas propriedades da CPU. Veja [`CONFIGURAR_CLOCK_MEMORY.txt`](CONFIGURAR_CLOCK_MEMORY.txt).
+Configure **MB10** como Clock Memory.
 
-## Revisao arquitetural
+- `M10.0` = 10 Hz, borda positiva a cada 100 ms;
+- `M10.5` = 1 Hz, 500 ms ligado / 500 ms desligado;
+- `M10.7` = 0,5 Hz, usado para reduzir leituras do RTC.
 
-Consulte [`ARQUITETURA_PERFORMANCE.md`](ARQUITETURA_PERFORMANCE.md) para a
-comparacao com padroes Siemens e implementacoes publicas, incluindo as decisoes
-de performance aplicadas a cada projeto.
+Usos:
 
-## Limite de verificacao
+- M10.5: Projetos 1, 2, 3, 5, 6, 11 e 13;
+- M10.0: Projetos 8/9 e 10;
+- M10.7: Projeto 5.
 
-As fontes foram revisadas estaticamente. A compilacao no STEP 7 e a execucao
-no PLCSIM/CLP da bancada ainda precisam ser feitas. Em especial, a nova
-revisao atual ainda nao foi recompilada no STEP 7 depois da introducao do
-Clock Memory, do registrador BYTE e do OB35.
+Veja `CONFIGURAR_CLOCK_MEMORY.txt`.
+
+## Projetos 1 e 2
+
+Em vez de um bit para cada etapa, `MW20` guarda o estado:
+
+- 0: via 2 verde;
+- 1: via 2 amarela;
+- 2: ambas vermelhas;
+- 3: via 1 verde;
+- 4: via 1 amarela;
+- 5: ambas vermelhas;
+- 6/7: pedestre e retorno para a via 1;
+- 8/9: pedestre e retorno para a via 2.
+
+Assim a direcao de retorno fica codificada no proprio estado e nao requer
+`Retoma_Via1`.
+
+`MW22` guarda o preset corrente e **T0 e o unico timer**. No Projeto 1 T0
+e TOF; no Projeto 2 T0 e TON.
+
+## Projeto 5
+
+Os contadores C51/C52 medem os pulsos das duas vias. A janela de um minuto nao
+usa timer: a troca do campo de minuto obtido por `SFC1` fecha a janela.
+Somente `T52` permanece para temporizar a etapa atual.
+
+## Projetos 7, 8 e 9
+
+FB107 guarda todos os oito bits em um unico `BYTE` e usa `SHL/SHR`.
+Como as entradas do FB sao pulsos, nao existem memorias internas de borda.
+
+FB108 usa **uma unica instancia de FB107**. Os tempos fixos sao contados a
+partir de `M10.0`; nao existe T80 nem quatro parametros de tempo.
+
+## Projeto 10
+
+Nao ha T100 nem OB35. A borda positiva de `M10.0` gera o tick de 100 ms.
+O estado da rampa, o contador de ticks e duas memorias de borda sao suficientes.
+
+## Projeto 11
+
+A versao anterior usava oito instancias de um FB de passo. A revisao minima
+representa o GRAFCET por um unico `INT etapa`. Os estados 6 e 8 recebem,
+respectivamente, as duas entradas alternativas da ramificacao OU. Apenas T110
+temporiza o passo ativo.
+
+## Projeto 13
+
+Aqui os bits individuais de passo foram mantidos porque o requisito e
+explicitamente **GRAFCET Ladder passo a passo**. Mesmo assim, todos os passos
+compartilham um unico TON T0; `MW20` guarda apenas o preset.
+
+## Projeto 14
+
+Nao depende mais do FB111. Um unico `INT estado` representa parado/frente/
+reverso, acompanhado apenas por `automatico` e `armaTempo`.
+
+## Importacao e validacao
+
+Cada projeto deve ficar em um S7 Program separado, pois possui seu proprio OB1.
+Projetos 8/9 requerem FB107; o Projeto 9 tambem requer FB108.
+
+As fontes foram revisadas estaticamente. Ainda e necessario compilar no
+STEP 7 Classic e testar no PLCSIM/CPU antes da entrega.

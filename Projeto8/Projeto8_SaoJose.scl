@@ -9,8 +9,7 @@ VAR_INPUT
     TempoDeslocamento : S5TIME;
 END_VAR
 VAR
-    vermelhos : FB107;
-    verdes : FB107;
+    reg : FB107;
     fase : INT := 0;
     novoGrupo : BOOL := TRUE;
     pronto : BOOL := FALSE;
@@ -116,10 +115,10 @@ BEGIN
 
     IF (fase = 2) OR (fase = 5) THEN pronto := TRUE; END_IF;
 
-    vermelhos(Forwardpulse := pulsoR, Forwarddata := dadoR,
-              Backwardpulse := FALSE, Backwarddata := FALSE, Reset := resetR);
-    verdes(Forwardpulse := pulsoG, Forwarddata := dadoG,
-           Backwardpulse := FALSE, Backwarddata := FALSE, Reset := resetG);
+    reg(Forwardpulse := pulsoR OR pulsoG,
+        Forwarddata := dadoR OR dadoG,
+        Backwardpulse := FALSE, Backwarddata := FALSE,
+        Reset := resetR OR resetG);
 
     // Escrita por BYTE substitui 13 atribuicoes BOOL por scan.
     QB0 := B#16#00;
@@ -130,14 +129,14 @@ BEGIN
             IF Maceio THEN QB0 := B#16#3F;
             ELSE QB0 := B#16#01; END_IF;
         ELSE
-            QB0 := vermelhos.Data AND B#16#3F;
+            QB0 := reg.Data AND B#16#3F;
         END_IF;
     ELSIF (fase = 3) OR (fase = 4) THEN
         IF NOT pronto THEN
             IF Maceio THEN QB1 := B#16#3F;
             ELSE QB1 := B#16#01; END_IF;
         ELSE
-            QB1 := verdes.Data AND B#16#3F;
+            QB1 := reg.Data AND B#16#3F;
         END_IF;
     ELSE
         QB0 := B#16#40;

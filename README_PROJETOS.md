@@ -66,13 +66,13 @@ As revisoes simplificadas compartilham timers por duracao:
 - `T1`: 4 s, usado pelas duas fases amarelas;
 - `T2`: 2 s, usado pelas duas fases de vermelho total;
 - `T3`: 15 s, verde do pedestre;
-- `T4`: 5 s, janela total do piscante;
-- `T5`: 500 ms, alternancia do piscante.
+- `T4`: 5 s, janela total do piscante.
 
-Portanto cada um desses projetos usa **6 timers**, em vez de um timer por
-etapa/fase do pisca. O Projeto 1 continua usando TOF; os Projetos 2 e 13,
-TON. O Projeto 13 preserva um bit por passo para continuar representando o
-GRAFCET explicitamente.
+A alternancia de 500 ms nao usa mais timer: ela vem de `M10.5`, bit de
+**Clock Memory de 1 Hz**. Portanto cada projeto usa **5 timers**. O Projeto 1
+continua usando TOF; os Projetos 2 e 13, TON. O Projeto 13 preserva um bit por
+passo para continuar representando o GRAFCET explicitamente. Configure
+`MB10` como Clock Memory antes de simular.
 
 ## Demais projetos
 
@@ -83,7 +83,9 @@ usando exatamente um timer conforme o requisito. O Projeto 4 gera pulsos de
 Projeto 5 mede `I0.1` e `I0.2` em janelas de 60 s e escolhe verde de
 20 s (<20 veiculos/min), 40 s (20 a 40) ou 60 s (>40). Entre 22:00 e 06:00,
 lido pelo relogio da CPU (`SFC1`), as duas amarelas piscam. A revisao atual
-usa apenas dois timers: janela de fluxo e etapa; o pisca e derivado de `SFC64`.
+usa apenas dois timers: janela de fluxo e etapa. O pisca usa `M10.5`, e a
+leitura do RTC (`SFC1`) ocorre apenas na partida e em bordas de `M10.7`, em
+vez de ser executada a cada scan.
 
 Projeto 7: `I0.0` pulso frente, `I0.1` dado frente, `I0.2` pulso tras,
 `I0.3` dado tras, `I0.4` reset. O registrador interno e um unico `BYTE`,
@@ -106,6 +108,12 @@ Projeto 12: `I0.0` CU, `I0.1` CD, `I0.2` reset, `I0.3` load, PV=10.
 Projeto 14: `I0.0` manual frente, `I0.1` manual reverso, `I0.2`
 retoma automatico, `I0.3` para. `Q0.0` frente e `Q0.1` reverso.
 
+## Clock Memory
+
+Os Projetos 1, 2, 3, 5, 6, 11 e 13 usam `M10.5` como clock de 1 Hz para
+pisca de 500 ms ligado / 500 ms desligado. Configure `MB10` como Clock Memory
+nas propriedades da CPU. Veja [`CONFIGURAR_CLOCK_MEMORY.txt`](CONFIGURAR_CLOCK_MEMORY.txt).
+
 ## Revisao arquitetural
 
 Consulte [`ARQUITETURA_PERFORMANCE.md`](ARQUITETURA_PERFORMANCE.md) para a
@@ -116,5 +124,5 @@ de performance aplicadas a cada projeto.
 
 As fontes foram revisadas estaticamente. A compilacao no STEP 7 e a execucao
 no PLCSIM/CLP da bancada ainda precisam ser feitas. Em especial, a nova
-revisao simplificada dos Projetos 1, 2 e 13 ainda nao foi recompilada no
-STEP 7 apos a reducao de timers e simbolos.
+revisao atual ainda nao foi recompilada no STEP 7 depois da introducao do
+Clock Memory, do registrador BYTE e do OB35.

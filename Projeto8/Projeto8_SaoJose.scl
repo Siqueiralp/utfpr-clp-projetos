@@ -14,13 +14,13 @@ VAR_TEMP
     resetReg : BOOL;
     pulsoReg : BOOL;
     dadoReg : BOOL;
- END_VAR
+END_VAR
 BEGIN
     resetReg := FALSE;
     pulsoReg := FALSE;
     dadoReg := FALSE;
 
-     CASE fase OF
+    CASE fase OF
         0: // reset vermelho
             resetReg := TRUE;
             contador := 0;

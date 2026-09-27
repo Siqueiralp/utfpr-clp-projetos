@@ -1,5 +1,9 @@
 # Tentativa de validação local — Projeto 1
 
+> **Nota:** este registro é histórico e se refere à versão anterior à revisão
+> 0.2, que reduziu a Symbol Table e compartilhou os timers. A versão atual
+> ainda precisa de uma nova compilação/execução no STEP 7 e PLCSIM.
+
 Data: 27/09/2026. Estado: **inconclusivo**. A fonte foi importada, mas não foi possível confirmar a compilação nem executar a lógica no simulador.
 
 ## Ambiente usado
@@ -27,9 +31,10 @@ Antes de iniciar o simulador, o SIMATIC Manager mostrava `PLCSIM.MPI.1` na barra
 
 ## Para retomar a validação
 
-1. Fazer o editor LAD/STL/FBD abrir o OB1 inicial de `S7_Pro3` e mostrar seu conteúdo. Só então recompilar `Projeto1_TOF` e registrar a lista de erros/avisos.
-2. Confirmar que a compilação substituiu o OB1 do projeto de teste e que o bloco abre com as redes esperadas.
+1. Fazer o editor LAD/STL/FBD abrir o OB1 inicial de `S7_Pro3` e mostrar seu conteúdo. Só então recompilar a versão atual de `Projeto1_TOF` e registrar a lista de erros/avisos.
+2. Confirmar que a compilação substituiu o OB1 e que o bloco abre com as redes esperadas.
 3. Alinhar a interface PG/PC do SIMATIC Manager com a interface do PLCSIM, limpar a memória simulada (MRES), transferir o programa e iniciar `RUN`.
-4. Observar o ciclo normal `30 s / 4 s / 2 s / 30 s / 4 s / 2 s` em `Q0.0..Q0.7` e testar um pulso em `I0.0` durante cada via, verificando a travessia de `15 s + 5 s` e os intertravamentos.
+4. Observar o ciclo normal `30 s / 4 s / 2 s / 30 s / 4 s / 2 s` e testar a travessia de `15 s + 5 s`.
+5. Confirmar especificamente os 6 timers compartilhados `T0..T5` e a importação da SDF mínima de 9 símbolos.
 
 Até completar esses passos, manter o Projeto 1 como **não validado no STEP 7/PLCSIM**.

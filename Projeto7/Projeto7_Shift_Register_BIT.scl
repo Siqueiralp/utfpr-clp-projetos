@@ -1,5 +1,5 @@
 FUNCTION_BLOCK FB107
-TITLE = 'Projeto 7 - Shift_Register_BIT compactado em BYTE'
+TITLE = 'Projeto 7 - Shift_Register_BIT minimo'
 VAR_INPUT
     Forwardpulse : BOOL;
     Forwarddata : BOOL;
@@ -10,32 +10,18 @@ END_VAR
 VAR_OUTPUT
     Data : BYTE := B#16#00;
 END_VAR
-VAR
-    anteriorF : BOOL := FALSE;
-    anteriorB : BOOL := FALSE;
-END_VAR
-VAR_TEMP
-    bordaF : BOOL;
-    bordaB : BOOL;
-END_VAR
 BEGIN
-    bordaF := Forwardpulse AND NOT anteriorF;
-    bordaB := Backwardpulse AND NOT anteriorB;
-    anteriorF := Forwardpulse;
-    anteriorB := Backwardpulse;
-
+    // As entradas Forwardpulse/Backwardpulse ja sao pulsos.
     IF Reset THEN
         Data := B#16#00;
-    ELSIF bordaF AND NOT bordaB THEN
+
+    ELSIF Forwardpulse AND NOT Backwardpulse THEN
         Data := SHL(IN := Data, N := 1);
-        IF Forwarddata THEN
-            Data := Data OR B#16#01;
-        END_IF;
-    ELSIF bordaB AND NOT bordaF THEN
+        IF Forwarddata THEN Data := Data OR B#16#01; END_IF;
+
+    ELSIF Backwardpulse AND NOT Forwardpulse THEN
         Data := SHR(IN := Data, N := 1);
-        IF Backwarddata THEN
-            Data := Data OR B#16#80;
-        END_IF;
+        IF Backwarddata THEN Data := Data OR B#16#80; END_IF;
     END_IF;
 END_FUNCTION_BLOCK
 

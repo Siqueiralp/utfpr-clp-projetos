@@ -20,7 +20,6 @@ VAR_TEMP
     tempoAtivo : BOOL;
     restante : WORD;
     resultado : S5TIME;
-    milissegundos : DINT;
 END_VAR
 BEGIN
     IF NOT iniciado THEN
@@ -77,8 +76,7 @@ BEGIN
     QB0 := tabela.estado[etapa];
 
     IF etapa = 7 THEN
-        milissegundos := TIME_TO_DINT(SFC64());
-        IF (milissegundos MOD 1000) >= 500 THEN
+        IF NOT M10.5 THEN
             QB0 := B#16#24;
         END_IF;
     END_IF;

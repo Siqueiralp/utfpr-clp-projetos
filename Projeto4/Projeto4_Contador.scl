@@ -1,8 +1,7 @@
 FUNCTION_BLOCK FB104
-TITLE = 'Projeto 4 - um timer, contador e comparadores'
+TITLE = 'Projeto 4 - um timer e um contador'
 VAR
     etapa : INT := 0;
-    voltaVia1 : BOOL := TRUE;
     pedido : BOOL := FALSE;
     botaoAnterior : BOOL := FALSE;
     armaPulso : BOOL := FALSE;
@@ -23,7 +22,6 @@ BEGIN
     IF I0.0 AND NOT botaoAnterior THEN pedido := TRUE; END_IF;
     botaoAnterior := I0.0;
 
-    // O unico temporizador gera a base de tempo de 500 ms.
     resultado := S_ODT(T_NO := T40, S := armaPulso,
                        TV := T#500MS, R := FALSE,
                        BI := restante, Q := fimPulso);
@@ -46,8 +44,8 @@ BEGIN
         0, 3: limite := 60;
         1, 4: limite := 8;
         2, 5: limite := 4;
-        6: limite := 30;
-        7: limite := 10;
+        6, 8: limite := 30;
+        7, 9: limite := 10;
     ELSE
         etapa := 0;
         limite := 60;
@@ -58,26 +56,23 @@ BEGIN
         zeraContador := TRUE;
         CASE etapa OF
             0: etapa := 1;
-            1, 2:
-                IF pedido THEN
-                    etapa := 6;
-                    voltaVia1 := TRUE;
-                    pedido := FALSE;
-                ELSE
-                    IF etapa = 1 THEN etapa := 2; ELSE etapa := 3; END_IF;
-                END_IF;
+            1:
+                IF pedido THEN etapa := 6; pedido := FALSE;
+                ELSE etapa := 2; END_IF;
+            2:
+                IF pedido THEN etapa := 6; pedido := FALSE;
+                ELSE etapa := 3; END_IF;
             3: etapa := 4;
-            4, 5:
-                IF pedido THEN
-                    etapa := 6;
-                    voltaVia1 := FALSE;
-                    pedido := FALSE;
-                ELSE
-                    IF etapa = 4 THEN etapa := 5; ELSE etapa := 0; END_IF;
-                END_IF;
+            4:
+                IF pedido THEN etapa := 8; pedido := FALSE;
+                ELSE etapa := 5; END_IF;
+            5:
+                IF pedido THEN etapa := 8; pedido := FALSE;
+                ELSE etapa := 0; END_IF;
             6: etapa := 7;
-            7:
-                IF voltaVia1 THEN etapa := 3; ELSE etapa := 0; END_IF;
+            7: etapa := 3;
+            8: etapa := 9;
+            9: etapa := 0;
         ELSE
             etapa := 0;
         END_CASE;
@@ -89,8 +84,8 @@ BEGIN
         2, 5: QB0 := B#16#A4;
         3: QB0 := B#16#A1;
         4: QB0 := B#16#A2;
-        6: QB0 := B#16#64;
-        7:
+        6, 8: QB0 := B#16#64;
+        7, 9:
             IF (total MOD 2) = 0 THEN QB0 := B#16#A4;
             ELSE QB0 := B#16#24; END_IF;
     ELSE

@@ -123,6 +123,7 @@ TITLE = "9 -> 0"
       L     MW    20;
       L     9;
       ==I;
+      A     M      0.1;
       A     T      0;
       JCN   T90;
       L     0;
@@ -135,6 +136,7 @@ TITLE = "8 -> 9"
       L     MW    20;
       L     8;
       ==I;
+      A     M      0.1;
       A     T      0;
       JCN   T89;
       L     9;
@@ -147,6 +149,7 @@ TITLE = "7 -> 3"
       L     MW    20;
       L     7;
       ==I;
+      A     M      0.1;
       A     T      0;
       JCN   T73;
       L     3;
@@ -159,6 +162,7 @@ TITLE = "6 -> 7"
       L     MW    20;
       L     6;
       ==I;
+      A     M      0.1;
       A     T      0;
       JCN   T67;
       L     7;
@@ -171,6 +175,7 @@ TITLE = "5 -> 0 sem pedido"
       L     MW    20;
       L     5;
       ==I;
+      A     M      0.1;
       A     T      0;
       AN    M      0.0;
       JCN   T50;
@@ -184,6 +189,7 @@ TITLE = "5 -> 8 com pedido"
       L     MW    20;
       L     5;
       ==I;
+      A     M      0.1;
       A     T      0;
       A     M      0.0;
       JCN   T58;
@@ -198,6 +204,7 @@ TITLE = "4 -> 5 sem pedido"
       L     MW    20;
       L     4;
       ==I;
+      A     M      0.1;
       A     T      0;
       AN    M      0.0;
       JCN   T45;
@@ -211,6 +218,7 @@ TITLE = "4 -> 8 com pedido"
       L     MW    20;
       L     4;
       ==I;
+      A     M      0.1;
       A     T      0;
       A     M      0.0;
       JCN   T48;
@@ -225,6 +233,7 @@ TITLE = "3 -> 4"
       L     MW    20;
       L     3;
       ==I;
+      A     M      0.1;
       A     T      0;
       JCN   T34;
       L     4;
@@ -237,6 +246,7 @@ TITLE = "2 -> 3 sem pedido"
       L     MW    20;
       L     2;
       ==I;
+      A     M      0.1;
       A     T      0;
       AN    M      0.0;
       JCN   T23;
@@ -250,6 +260,7 @@ TITLE = "2 -> 6 com pedido"
       L     MW    20;
       L     2;
       ==I;
+      A     M      0.1;
       A     T      0;
       A     M      0.0;
       JCN   T26;
@@ -264,6 +275,7 @@ TITLE = "1 -> 2 sem pedido"
       L     MW    20;
       L     1;
       ==I;
+      A     M      0.1;
       A     T      0;
       AN    M      0.0;
       JCN   T12;
@@ -277,6 +289,7 @@ TITLE = "1 -> 6 com pedido"
       L     MW    20;
       L     1;
       ==I;
+      A     M      0.1;
       A     T      0;
       A     M      0.0;
       JCN   T16;
@@ -291,6 +304,7 @@ TITLE = "0 -> 1"
       L     MW    20;
       L     0;
       ==I;
+      A     M      0.1;
       A     T      0;
       JCN   T01;
       L     1;

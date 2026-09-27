@@ -77,7 +77,7 @@ TITLE = "TOF 500 ms - fase do pisca"
 
 NETWORK
 TITLE = "Consome pulsos de partida dos TOF"
-      SET;
+      A     M      0.7;
       R     M      2.0;
       R     M      2.1;
 

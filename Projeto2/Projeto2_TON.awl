@@ -1,6 +1,6 @@
 ORGANIZATION_BLOCK OB 1
-TITLE = "Projeto 2 - Semaforo intuitivo com TON"
-VERSION : 0.1
+TITLE = "Projeto 2 - Semaforo LAD com TON simplificado"
+VERSION : 0.2
 
 VAR_TEMP
   OB1_EV_CLASS : BYTE ;
@@ -18,26 +18,63 @@ END_VAR
 BEGIN
 
 NETWORK
-TITLE = "Inicializacao - ativa Etapa 1"
+TITLE = "Inicializacao"
       AN    M      0.7;
       S     M      0.0;
-
-NETWORK
-TITLE = "Inicializacao - trava primeiro scan"
-      AN    M      0.7;
       S     M      0.7;
 
 NETWORK
-TITLE = "Memoriza pedido de pedestre por borda"
+TITLE = "Memoriza pedido de pedestre"
       A     I      0.0;
-      FP    M      3.2;
+      FP    M      2.1;
       S     M      0.6;
 
 NETWORK
-TITLE = "Etapa 1 - TON 30 s"
+TITLE = "TON compartilhado 30 s - etapas 1 e 4"
       A     M      0.0;
+      O     M      0.3;
       L     S5T#30S;
       SD    T      0;
+
+NETWORK
+TITLE = "TON compartilhado 4 s - etapas 2 e 5"
+      A     M      0.1;
+      O     M      0.4;
+      L     S5T#4S;
+      SD    T      1;
+
+NETWORK
+TITLE = "TON compartilhado 2 s - etapas 3 e 6"
+      A     M      0.2;
+      O     M      0.5;
+      L     S5T#2S;
+      SD    T      2;
+
+NETWORK
+TITLE = "TON 15 s - pedestre verde"
+      A     M      1.0;
+      L     S5T#15S;
+      SD    T      3;
+
+NETWORK
+TITLE = "TON 5 s - pedestre piscante"
+      A     M      1.1;
+      L     S5T#5S;
+      SD    T      4;
+
+NETWORK
+TITLE = "TON 500 ms - fase do pisca"
+      A     M      1.1;
+      A     M      2.0;
+      L     S5T#500MS;
+      SD    T      5;
+
+NETWORK
+TITLE = "Rearma TON do pisca apos um scan em zero"
+      A     M      1.1;
+      AN    M      2.0;
+      AN    T      5;
+      S     M      2.0;
 
 NETWORK
 TITLE = "Etapa 1 para Etapa 2"
@@ -47,13 +84,7 @@ TITLE = "Etapa 1 para Etapa 2"
       R     M      0.0;
 
 NETWORK
-TITLE = "Etapa 2 - TON 4 s"
-      A     M      0.1;
-      L     S5T#4S;
-      SD    T      1;
-
-NETWORK
-TITLE = "Etapa 2 sem pedestre para Etapa 3"
+TITLE = "Etapa 2 para Etapa 3"
       A     M      0.1;
       A     T      1;
       AN    M      0.6;
@@ -61,7 +92,7 @@ TITLE = "Etapa 2 sem pedestre para Etapa 3"
       R     M      0.1;
 
 NETWORK
-TITLE = "Etapa 2 com pedestre"
+TITLE = "Etapa 2 para pedestre"
       A     M      0.1;
       A     T      1;
       A     M      0.6;
@@ -71,13 +102,7 @@ TITLE = "Etapa 2 com pedestre"
       R     M      0.1;
 
 NETWORK
-TITLE = "Etapa 3 - TON 2 s"
-      A     M      0.2;
-      L     S5T#2S;
-      SD    T      2;
-
-NETWORK
-TITLE = "Etapa 3 sem novo pedido para Etapa 4"
+TITLE = "Etapa 3 para Etapa 4"
       A     M      0.2;
       A     T      2;
       AN    M      0.6;
@@ -85,7 +110,7 @@ TITLE = "Etapa 3 sem novo pedido para Etapa 4"
       R     M      0.2;
 
 NETWORK
-TITLE = "Etapa 3 com novo pedido"
+TITLE = "Etapa 3 para pedestre"
       A     M      0.2;
       A     T      2;
       A     M      0.6;
@@ -95,36 +120,24 @@ TITLE = "Etapa 3 com novo pedido"
       R     M      0.2;
 
 NETWORK
-TITLE = "Etapa 4 - TON 30 s"
-      A     M      0.3;
-      L     S5T#30S;
-      SD    T      3;
-
-NETWORK
 TITLE = "Etapa 4 para Etapa 5"
       A     M      0.3;
-      A     T      3;
+      A     T      0;
       S     M      0.4;
       R     M      0.3;
 
 NETWORK
-TITLE = "Etapa 5 - TON 4 s"
+TITLE = "Etapa 5 para Etapa 6"
       A     M      0.4;
-      L     S5T#4S;
-      SD    T      4;
-
-NETWORK
-TITLE = "Etapa 5 sem pedestre para Etapa 6"
-      A     M      0.4;
-      A     T      4;
+      A     T      1;
       AN    M      0.6;
       S     M      0.5;
       R     M      0.4;
 
 NETWORK
-TITLE = "Etapa 5 com pedestre"
+TITLE = "Etapa 5 para pedestre"
       A     M      0.4;
-      A     T      4;
+      A     T      1;
       A     M      0.6;
       S     M      1.0;
       R     M      1.2;
@@ -132,23 +145,17 @@ TITLE = "Etapa 5 com pedestre"
       R     M      0.4;
 
 NETWORK
-TITLE = "Etapa 6 - TON 2 s"
+TITLE = "Etapa 6 para Etapa 1"
       A     M      0.5;
-      L     S5T#2S;
-      SD    T      5;
-
-NETWORK
-TITLE = "Etapa 6 sem novo pedido para Etapa 1"
-      A     M      0.5;
-      A     T      5;
+      A     T      2;
       AN    M      0.6;
       S     M      0.0;
       R     M      0.5;
 
 NETWORK
-TITLE = "Etapa 6 com novo pedido"
+TITLE = "Etapa 6 para pedestre"
       A     M      0.5;
-      A     T      5;
+      A     T      2;
       A     M      0.6;
       S     M      1.0;
       R     M      1.2;
@@ -156,75 +163,65 @@ TITLE = "Etapa 6 com novo pedido"
       R     M      0.5;
 
 NETWORK
-TITLE = "Pedestre verde - TON 15 s"
+TITLE = "Pedestre verde para piscante"
       A     M      1.0;
-      L     S5T#15S;
-      SD    T      6;
-
-NETWORK
-TITLE = "Pedestre verde para vermelho piscante"
-      A     M      1.0;
-      A     T      6;
+      A     T      3;
       S     M      1.1;
       S     M      1.3;
+      R     M      1.4;
       R     M      1.0;
-
-NETWORK
-TITLE = "Pedestre piscante - TON total 5 s"
-      A     M      1.1;
-      L     S5T#5S;
-      SD    T      7;
+      S     M      2.0;
 
 NETWORK
 TITLE = "Fim pedestre - retoma Via 1"
       A     M      1.1;
-      A     T      7;
+      A     T      4;
       A     M      1.2;
       S     M      0.3;
-      R     M      1.3;
-      R     M      1.4;
       R     M      1.1;
       R     M      1.2;
+      R     M      1.3;
+      R     M      1.4;
+      R     M      2.0;
 
 NETWORK
 TITLE = "Fim pedestre - retoma Via 2"
       A     M      1.1;
-      A     T      7;
+      A     T      4;
       AN    M      1.2;
       S     M      0.0;
+      R     M      1.1;
       R     M      1.3;
       R     M      1.4;
-      R     M      1.1;
+      R     M      2.0;
 
 NETWORK
-TITLE = "Pisca pedestre - fase ligada TON 500 ms"
+TITLE = "Detecta fim de 500 ms - fase ligada"
       A     M      1.1;
+      A     T      5;
       A     M      1.3;
-      L     S5T#500MS;
-      SD    T      8;
+      =     M      2.2;
 
 NETWORK
-TITLE = "Pisca pedestre - ligada para desligada"
+TITLE = "Detecta fim de 500 ms - fase desligada"
       A     M      1.1;
-      A     M      1.3;
-      A     T      8;
+      A     T      5;
+      A     M      1.4;
+      =     M      2.3;
+
+NETWORK
+TITLE = "Pisca: ligada para desligada"
+      A     M      2.2;
       S     M      1.4;
       R     M      1.3;
+      R     M      2.0;
 
 NETWORK
-TITLE = "Pisca pedestre - fase desligada TON 500 ms"
-      A     M      1.1;
-      A     M      1.4;
-      L     S5T#500MS;
-      SD    T      9;
-
-NETWORK
-TITLE = "Pisca pedestre - desligada para ligada"
-      A     M      1.1;
-      A     M      1.4;
-      A     T      9;
+TITLE = "Pisca: desligada para ligada"
+      A     M      2.3;
       S     M      1.3;
       R     M      1.4;
+      R     M      2.0;
 
 NETWORK
 TITLE = "Saida - Verde Via 1"
@@ -279,4 +276,3 @@ TITLE = "Saida - Vermelho Pedestre"
       =     Q      0.7;
 
 END_ORGANIZATION_BLOCK
-

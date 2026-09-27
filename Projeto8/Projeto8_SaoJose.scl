@@ -11,16 +11,13 @@ END_VAR
 VAR
     vermelhos : FB107;
     verdes : FB107;
-    fase : INT := 0;             // vermelho, desloca, amarelo, verde, desloca, amarelo
+    fase : INT := 0;
     novoGrupo : BOOL := TRUE;
     pronto : BOOL := FALSE;
     alto : BOOL := FALSE;
     semeados : INT := 0;
     deslocados : INT := 0;
     armaTempo : BOOL := FALSE;
-    fimTempo : BOOL := FALSE;
-    tempo : S5TIME;
-    restante : WORD;
 END_VAR
 VAR_TEMP
     resetR : BOOL;
@@ -31,19 +28,32 @@ VAR_TEMP
     dadoG : BOOL;
     alvo : INT;
     limite : INT;
+    fimTempo : BOOL;
+    duracao : S5TIME;
+    restante : WORD;
+    resultado : S5TIME;
 END_VAR
 BEGIN
     resetR := FALSE; resetG := FALSE;
     pulsoR := FALSE; pulsoG := FALSE;
     dadoR := FALSE; dadoG := FALSE;
-    IF Maceio THEN alvo := 6; limite := 6;
-    ELSE alvo := 1; limite := 5; END_IF;
 
-    // Prepara o registrador atraves das entradas originais do FB107.
+    IF Maceio THEN
+        alvo := 6;
+        limite := 6;
+    ELSE
+        alvo := 1;
+        limite := 5;
+    END_IF;
+
+    // Prepara o registrador usando o mesmo FB107 do Projeto 7.
     IF novoGrupo THEN
         IF fase = 0 THEN resetR := TRUE; ELSE resetG := TRUE; END_IF;
-        semeados := 0; deslocados := 0;
-        alto := FALSE; pronto := FALSE; novoGrupo := FALSE;
+        semeados := 0;
+        deslocados := 0;
+        alto := FALSE;
+        pronto := FALSE;
+        novoGrupo := FALSE;
     ELSIF ((fase = 0) OR (fase = 3)) AND NOT pronto THEN
         IF NOT alto THEN
             alto := TRUE;
@@ -56,32 +66,54 @@ BEGIN
         END_IF;
     END_IF;
 
-    IF fase = 0 THEN tempo := TempoVermelho;
-    ELSIF fase = 3 THEN tempo := TempoVerde;
-    ELSIF (fase = 2) OR (fase = 5) THEN tempo := TempoAmarelo;
-    ELSE tempo := TempoDeslocamento; END_IF;
+    IF fase = 0 THEN duracao := TempoVermelho;
+    ELSIF fase = 3 THEN duracao := TempoVerde;
+    ELSIF (fase = 2) OR (fase = 5) THEN duracao := TempoAmarelo;
+    ELSE duracao := TempoDeslocamento;
+    END_IF;
 
-    tempo := S_ODT(T_NO := T80, S := armaTempo AND pronto,
-                   TV := tempo, R := FALSE, BI := restante, Q := fimTempo);
+    resultado := S_ODT(T_NO := T80, S := armaTempo AND pronto,
+                       TV := duracao, R := FALSE,
+                       BI := restante, Q := fimTempo);
+
     IF pronto THEN
         IF fimTempo THEN
             armaTempo := FALSE;
             CASE fase OF
                 0: fase := 1;
-                1: IF deslocados < limite THEN
-                       pulsoR := TRUE; deslocados := deslocados + 1;
-                   ELSE fase := 2; END_IF;
-                2: fase := 3; novoGrupo := TRUE; pronto := FALSE;
+                1:
+                    IF deslocados < limite THEN
+                        pulsoR := TRUE;
+                        deslocados := deslocados + 1;
+                    ELSE
+                        fase := 2;
+                    END_IF;
+                2:
+                    fase := 3;
+                    novoGrupo := TRUE;
+                    pronto := FALSE;
                 3: fase := 4;
-                4: IF deslocados < limite THEN
-                       pulsoG := TRUE; deslocados := deslocados + 1;
-                   ELSE fase := 5; END_IF;
-                5: fase := 0; novoGrupo := TRUE; pronto := FALSE;
+                4:
+                    IF deslocados < limite THEN
+                        pulsoG := TRUE;
+                        deslocados := deslocados + 1;
+                    ELSE
+                        fase := 5;
+                    END_IF;
+                5:
+                    fase := 0;
+                    novoGrupo := TRUE;
+                    pronto := FALSE;
+            ELSE
+                fase := 0;
+                novoGrupo := TRUE;
+                pronto := FALSE;
             END_CASE;
         ELSIF NOT armaTempo THEN
             armaTempo := TRUE;
         END_IF;
     END_IF;
+
     IF (fase = 2) OR (fase = 5) THEN pronto := TRUE; END_IF;
 
     vermelhos(Forwardpulse := pulsoR, Forwarddata := dadoR,
@@ -89,34 +121,26 @@ BEGIN
     verdes(Forwardpulse := pulsoG, Forwarddata := dadoG,
            Backwardpulse := FALSE, Backwarddata := FALSE, Reset := resetG);
 
-    Q0.0 := FALSE; Q0.1 := FALSE; Q0.2 := FALSE;
-    Q0.3 := FALSE; Q0.4 := FALSE; Q0.5 := FALSE; Q0.6 := FALSE;
-    Q1.0 := FALSE; Q1.1 := FALSE; Q1.2 := FALSE;
-    Q1.3 := FALSE; Q1.4 := FALSE; Q1.5 := FALSE;
+    // Escrita por BYTE substitui 13 atribuicoes BOOL por scan.
+    QB0 := B#16#00;
+    QB1 := B#16#00;
+
     IF (fase = 0) OR (fase = 1) THEN
         IF NOT pronto THEN
-            IF Maceio THEN
-                Q0.0 := TRUE; Q0.1 := TRUE; Q0.2 := TRUE;
-                Q0.3 := TRUE; Q0.4 := TRUE; Q0.5 := TRUE;
-            ELSE Q0.0 := TRUE; END_IF;
+            IF Maceio THEN QB0 := B#16#3F;
+            ELSE QB0 := B#16#01; END_IF;
         ELSE
-            Q0.0 := vermelhos.Q0; Q0.1 := vermelhos.Q1;
-            Q0.2 := vermelhos.Q2; Q0.3 := vermelhos.Q3;
-            Q0.4 := vermelhos.Q4; Q0.5 := vermelhos.Q5;
+            QB0 := vermelhos.Data AND B#16#3F;
         END_IF;
     ELSIF (fase = 3) OR (fase = 4) THEN
         IF NOT pronto THEN
-            IF Maceio THEN
-                Q1.0 := TRUE; Q1.1 := TRUE; Q1.2 := TRUE;
-                Q1.3 := TRUE; Q1.4 := TRUE; Q1.5 := TRUE;
-            ELSE Q1.0 := TRUE; END_IF;
+            IF Maceio THEN QB1 := B#16#3F;
+            ELSE QB1 := B#16#01; END_IF;
         ELSE
-            Q1.0 := verdes.Q0; Q1.1 := verdes.Q1;
-            Q1.2 := verdes.Q2; Q1.3 := verdes.Q3;
-            Q1.4 := verdes.Q4; Q1.5 := verdes.Q5;
+            QB1 := verdes.Data AND B#16#3F;
         END_IF;
     ELSE
-        Q0.6 := TRUE;
+        QB0 := B#16#40;
     END_IF;
 END_FUNCTION_BLOCK
 

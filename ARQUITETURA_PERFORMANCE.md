@@ -22,18 +22,25 @@ projeto.
    - Se apenas uma etapa pode estar ativa, um timer pode ser reutilizado.
    - Nao ha ganho em reservar oito timers para oito passos mutuamente exclusivos.
 
-4. **Base de tempo deterministica quando a taxa fixa e parte do comportamento**
+4. **Clock Memory para sinais periodicos simples**
+   - A propria Siemens recomenda Clock Memory para luzes piscantes e atividades
+     periodicas simples.
+   - Com MB10 configurado, M10.5 fornece periodo de 1 s sem timer de usuario e
+     sem chamada de SFC em cada scan.
+   - O Projeto 5 usa M10.7 para limitar a releitura do relogio de tempo real.
+
+5. **Base de tempo deterministica quando a taxa fixa e parte do comportamento**
    - O Projeto 10 usa OB35 a 100 ms em vez de construir um tick de 100 ms com
      um timer chamado no OB1.
    - Isso separa a rampa periodica do tempo de ciclo variavel do OB1.
 
-5. **Evitar enderecamento indireto apenas para reduzir linhas**
+6. **Evitar enderecamento indireto apenas para reduzir linhas**
    - Tabelas e arrays continuam onde sao requisito ou reduzem realmente a logica.
    - No S7-300, enderecamento indireto tem custo adicional de carregar o endereco
      antes de executar a instrucao; portanto, "data-driven" nao e automaticamente
      mais rapido.
 
-6. **Estado persistente somente para informacao que atravessa scans**
+7. **Estado persistente somente para informacao que atravessa scans**
    - Valores intermediarios foram movidos para VAR_TEMP quando apropriado.
    - Flags de resultado de timer, mascaras e valores derivados nao precisam ocupar
      o DB de instancia permanentemente.
@@ -62,6 +69,16 @@ melhorar o tempo de scan.
 Fonte:
 https://support.industry.siemens.com/cs/attachments/8861817/opli312bis318_e.pdf
 
+### Clock Memory para pulsos periodicos
+
+O manual de programacao STEP 7 define o Clock Memory como um byte atualizado
+periodicamente pela CPU e cita explicitamente luzes piscantes como aplicacao.
+No mapeamento padrao, bit 5 tem periodo de 1,0 s (1 Hz). Essa revisao usa
+MB10/M10.5 para o pisca.
+
+Fonte:
+https://cache.industry.siemens.com/dl/files/056/18652056/att_70829/v1/S7prv54_e.pdf
+
 ### OB35 para tarefas periodicas
 
 A Siemens usa OB35 como cyclic interrupt no S7-300. O intervalo padrao e
@@ -88,19 +105,35 @@ https://github.com/Adam-plc-code/Mawomat/blob/main/Sequence1.scl
 
 | Projeto | Arquitetura aplicada | Resultado estrutural |
 | --- | --- | --- |
-| 1 | LAD/TOF explicito preservado | 6 timers compartilhados; Symbol Table minima |
-| 2 | LAD/TON explicito preservado | 6 timers compartilhados; Symbol Table minima |
-| 3 | FSM compacta + CASE + QB0 | 2 timers -> 1; pisca derivado de SFC64 |
+| 1 | LAD/TOF explicito preservado | 5 timers + Clock Memory; Symbol Table minima |
+| 2 | LAD/TON explicito preservado | 5 timers + Clock Memory; Symbol Table minima |
+| 3 | FSM compacta + CASE + QB0 | 2 timers -> 1 + Clock Memory |
 | 4 | FSM compacta + temporarios locais | Mantem exatamente 1 timer + 1 contador |
-| 5 | FSM compacta + SFC64 para pisca | 3 timers -> 2 |
-| 6 | Sequenciador orientado a tabela | Mantem 1 TOF; menos estado persistente |
+| 5 | FSM compacta + SFC64 para pisca | 3 timers -> 2 + Clock Memory |
+| 6 | Sequenciador orientado a tabela | Mantem 1 TOF; Clock Memory para pisca |
 | 7 | Registrador em BYTE + SHL/SHR | 8 BOOL de estado -> 1 BYTE |
 | 8/9 | FB107 compactado + QB0/QB1 | Grupos de lampadas escritos por byte |
 | 10 | FSM executada em OB35 | Remove T100; tick real de 100 ms |
-| 11 | GRAFCET one-hot + timer compartilhado | 8 timers -> 1 |
+| 11 | GRAFCET one-hot + timer compartilhado | 8 timers -> 1 + Clock Memory |
 | 12 | CTUD compacto | Sem mudanca relevante |
 | 13 | GRAFCET LAD preservado | 6 timers; Symbol Table minima |
 | 14 | FB de passo reutilizavel | Estrutura existente preservada |
+
+## Correcao apos comparar tempos de instrucao
+
+Uma versao intermediaria desta revisao usava `SFC64 TIME_TCK` para gerar o
+pisca sem reservar outro timer. A lista de instrucoes do S7-300 mostra que
+`SFC64` custa dezenas de microssegundos em CPUs 31x, enquanto iniciar um timer
+S7 diretamente fica na faixa de poucos microssegundos. Portanto "eliminar um
+timer" via chamada de sistema nao era uma otimizacao de CPU.
+
+A versao final usa **Clock Memory**, que e gerado pela propria CPU e requer
+somente a leitura de um bit M no programa. Essa foi uma mudanca motivada por
+performance real, nao apenas contagem de recursos.
+
+Fontes:
+https://support.industry.siemens.com/cs/attachments/13206730/s7300_instruction_list_en-US.pdf
+https://cache.industry.siemens.com/dl/files/056/18652056/att_70829/v1/S7prv54_e.pdf
 
 ## Por que nao transformar tudo em uma tabela generica
 
@@ -142,6 +175,7 @@ Antes da entrega final ainda e necessario:
 
 - compilar todas as fontes no STEP 7 Classic;
 - confirmar a assinatura das funcoes SCL SHL/SHR na instalacao usada;
+- habilitar MB10 como Clock Memory nos projetos documentados;
 - confirmar OB35 em 100 ms no Projeto 10;
 - executar os cenarios no PLCSIM;
 - medir cycle time antes/depois se for desejada uma comparacao quantitativa de

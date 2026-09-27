@@ -1,17 +1,16 @@
 TYPE UDT106
 STRUCT
-    estado : ARRAY[0..7] OF BYTE;
-    tempo : ARRAY[0..7] OF S5TIME;
+    estado : ARRAY[0..9] OF BYTE;
+    tempo : ARRAY[0..9] OF S5TIME;
 END_STRUCT;
 END_TYPE
 
 FUNCTION_BLOCK FB106
-TITLE = 'Projeto 6 - matrizes e um TOF'
+TITLE = 'Projeto 6 - matriz e um TOF'
 VAR
     tabela : UDT106;
     iniciado : BOOL := FALSE;
     etapa : INT := 0;
-    voltaVia1 : BOOL := TRUE;
     pedido : BOOL := FALSE;
     botaoAnterior : BOOL := FALSE;
     pulsoInicio : BOOL := TRUE;
@@ -31,13 +30,14 @@ BEGIN
         tabela.estado[5] := B#16#A4; tabela.tempo[5] := T#2S;
         tabela.estado[6] := B#16#64; tabela.tempo[6] := T#15S;
         tabela.estado[7] := B#16#A4; tabela.tempo[7] := T#5S;
+        tabela.estado[8] := B#16#64; tabela.tempo[8] := T#15S;
+        tabela.estado[9] := B#16#A4; tabela.tempo[9] := T#5S;
         iniciado := TRUE;
     END_IF;
 
     IF I0.0 AND NOT botaoAnterior THEN pedido := TRUE; END_IF;
     botaoAnterior := I0.0;
 
-    // Um unico TOF atende todas as etapas; a matriz fornece o preset.
     resultado := S_OFFDT(T_NO := T60, S := pulsoInicio,
                          TV := tabela.tempo[etapa], R := FALSE,
                          BI := restante, Q := tempoAtivo);
@@ -47,26 +47,23 @@ BEGIN
     ELSIF NOT tempoAtivo THEN
         CASE etapa OF
             0: etapa := 1;
-            1, 2:
-                IF pedido THEN
-                    etapa := 6;
-                    voltaVia1 := TRUE;
-                    pedido := FALSE;
-                ELSE
-                    IF etapa = 1 THEN etapa := 2; ELSE etapa := 3; END_IF;
-                END_IF;
+            1:
+                IF pedido THEN etapa := 6; pedido := FALSE;
+                ELSE etapa := 2; END_IF;
+            2:
+                IF pedido THEN etapa := 6; pedido := FALSE;
+                ELSE etapa := 3; END_IF;
             3: etapa := 4;
-            4, 5:
-                IF pedido THEN
-                    etapa := 6;
-                    voltaVia1 := FALSE;
-                    pedido := FALSE;
-                ELSE
-                    IF etapa = 4 THEN etapa := 5; ELSE etapa := 0; END_IF;
-                END_IF;
+            4:
+                IF pedido THEN etapa := 8; pedido := FALSE;
+                ELSE etapa := 5; END_IF;
+            5:
+                IF pedido THEN etapa := 8; pedido := FALSE;
+                ELSE etapa := 0; END_IF;
             6: etapa := 7;
-            7:
-                IF voltaVia1 THEN etapa := 3; ELSE etapa := 0; END_IF;
+            7: etapa := 3;
+            8: etapa := 9;
+            9: etapa := 0;
         ELSE
             etapa := 0;
         END_CASE;
@@ -74,11 +71,8 @@ BEGIN
     END_IF;
 
     QB0 := tabela.estado[etapa];
-
-    IF etapa = 7 THEN
-        IF NOT M10.5 THEN
-            QB0 := B#16#24;
-        END_IF;
+    IF (etapa = 7) OR (etapa = 9) THEN
+        IF NOT M10.5 THEN QB0 := B#16#24; END_IF;
     END_IF;
 END_FUNCTION_BLOCK
 

@@ -48,10 +48,11 @@ indireto para preservar a visualizacao em Ladder.
 RECURSOS INTERNOS
 -----------------
 Os tempos repetidos compartilham timers:
-T0 = 30 s, T1 = 4 s, T2 = 2 s, T3 = 15 s, T4 = 5 s e T5 = 500 ms.
+T0 = 30 s, T1 = 4 s, T2 = 2 s, T3 = 15 s e T4 = 5 s.
 
-Portanto o Projeto 1 usa 6 timers, nao 10. Consulte MAPA_LOGICA.txt para os
-poucos bits M internos restantes.
+Portanto o Projeto 1 usa 5 timers, nao 10. O pisca de 500 ms usa M10.5.
+Antes de testar, configure MB10 como Clock Memory nas propriedades da CPU.
+Consulte ../CONFIGURAR_CLOCK_MEMORY.txt e MAPA_LOGICA.txt.
 
 IMPORTANTE SOBRE MNEMONICS
 --------------------------
@@ -85,7 +86,7 @@ TESTE DO PEDESTRE
 2. M0.6 memoriza o pedido (nao precisa existir na Symbol Table).
 3. O pedido e atendido em uma transicao segura.
 4. Q0.6 fica verde por 15 s.
-5. Depois Q0.7 pisca por 5 s, alternando a cada 500 ms.
+5. Depois Q0.7 pisca por 5 s seguindo M10.5 (500 ms ON / 500 ms OFF).
 6. Ao terminar, abre a via que estava fechada antes da chamada.
 
 OBSERVACAO SOBRE HARDWARE REAL

@@ -1,57 +1,102 @@
 FUNCTION_BLOCK FB110
-TITLE = 'Projeto 10 - quatro rampas de velocidade'
+TITLE = 'Projeto 10 - quatro rampas em base deterministica de 100 ms'
+VAR_OUTPUT
+    Command : INT := 0;
+END_VAR
 VAR
     etapa : INT := 7;              // 0/2 sobe; 4/6 desce; 1/3/5 patamar
-    comando : INT := 0;
     esperaTicks : INT := 0;
     anteriorStart : BOOL := FALSE;
-    armaTick : BOOL := FALSE;
-    fimTick : BOOL := FALSE;
-    tempo : S5TIME;
 END_VAR
 BEGIN
+    // Este FB e executado exclusivamente pelo OB35 a cada 100 ms.
     IF I0.1 THEN
-        etapa := 7; comando := 0;
+        etapa := 7;
+        Command := 0;
+        esperaTicks := 0;
     ELSIF I0.0 AND NOT anteriorStart AND (etapa = 7) THEN
-        etapa := 0; comando := 0; esperaTicks := 0;
-    END_IF;
-    anteriorStart := I0.0;
-
-    tempo := S_ODT(T_NO := T100, S := armaTick AND (etapa <> 7),
-                   TV := T#100MS, R := (etapa = 7), Q := fimTick);
-    IF etapa = 7 THEN
-        armaTick := FALSE;
-    ELSIF fimTick THEN
-        armaTick := FALSE;
+        etapa := 0;
+        Command := 0;
+        esperaTicks := 0;
+    ELSE
         CASE etapa OF
-            0: comando := comando + 32;
-               IF comando >= 2048 THEN comando := 2048;
-                   etapa := 1; esperaTicks := 0; END_IF;
-            1: esperaTicks := esperaTicks + 1;
-               IF esperaTicks >= 30 THEN etapa := 2; END_IF;
-            2: comando := comando + 128;
-               IF comando >= 4095 THEN comando := 4095;
-                   etapa := 3; esperaTicks := 0; END_IF;
-            3: esperaTicks := esperaTicks + 1;
-               IF esperaTicks >= 50 THEN etapa := 4; END_IF;
-            4: comando := comando - 128;
-               IF comando <= 2048 THEN comando := 2048;
-                   etapa := 5; esperaTicks := 0; END_IF;
-            5: esperaTicks := esperaTicks + 1;
-               IF esperaTicks >= 30 THEN etapa := 6; END_IF;
-            6: comando := comando - 32;
-               IF comando <= 0 THEN comando := 0; etapa := 7; END_IF;
+            0:
+                Command := Command + 32;
+                IF Command >= 2048 THEN
+                    Command := 2048;
+                    etapa := 1;
+                    esperaTicks := 0;
+                END_IF;
+
+            1:
+                esperaTicks := esperaTicks + 1;
+                IF esperaTicks >= 30 THEN etapa := 2; END_IF;
+
+            2:
+                Command := Command + 128;
+                IF Command >= 4095 THEN
+                    Command := 4095;
+                    etapa := 3;
+                    esperaTicks := 0;
+                END_IF;
+
+            3:
+                esperaTicks := esperaTicks + 1;
+                IF esperaTicks >= 50 THEN etapa := 4; END_IF;
+
+            4:
+                Command := Command - 128;
+                IF Command <= 2048 THEN
+                    Command := 2048;
+                    etapa := 5;
+                    esperaTicks := 0;
+                END_IF;
+
+            5:
+                esperaTicks := esperaTicks + 1;
+                IF esperaTicks >= 30 THEN etapa := 6; END_IF;
+
+            6:
+                Command := Command - 32;
+                IF Command <= 0 THEN
+                    Command := 0;
+                    etapa := 7;
+                END_IF;
+
+            7:
+                Command := 0;
+
+        ELSE
+            etapa := 7;
+            Command := 0;
+            esperaTicks := 0;
         END_CASE;
-    ELSIF NOT armaTick THEN
-        armaTick := TRUE;
     END_IF;
 
-    MW100 := comando;              // observacao simples em PLCSIM
-    PQW256 := INT_TO_WORD(comando); // ajustar endereco ao modulo analogico
+    anteriorStart := I0.0;
 END_FUNCTION_BLOCK
+
+ORGANIZATION_BLOCK OB35
+TITLE = 'Projeto 10 - tick deterministico de 100 ms'
+VAR_TEMP
+    OB35_EV_CLASS : BYTE;
+    OB35_STRT_INF : BYTE;
+    OB35_PRIORITY : BYTE;
+    OB35_OB_NUMBR : BYTE;
+    OB35_RESERVED_1 : BYTE;
+    OB35_RESERVED_2 : BYTE;
+    OB35_PHASE_OFFSET : WORD;
+    OB35_RESERVED_3 : INT;
+    OB35_EXC_FREQ : INT;
+    OB35_DATE_TIME : DATE_AND_TIME;
+END_VAR
+BEGIN
+    FB110.DB110();
+END_ORGANIZATION_BLOCK
 
 ORGANIZATION_BLOCK OB1
 VAR_TEMP HEADER : ARRAY [1..20] OF BYTE; END_VAR
 BEGIN
-    FB110.DB110();
+    MW100 := DB110.Command;
+    PQW256 := INT_TO_WORD(DB110.Command);
 END_ORGANIZATION_BLOCK

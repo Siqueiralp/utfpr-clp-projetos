@@ -56,7 +56,7 @@ poucos bits M internos restantes.
 IMPORTANTE SOBRE MNEMONICS
 --------------------------
 A fonte usa mnemonicos em INGLES/INTERNATIONAL:
-A, AN, O, S, R, FP, SET e SF.
+A, AN, O, S, R, FP e SF.
 
 Se o compilador reclamar especificamente de SF, verifique:
 Options -> Customize -> Language / Mnemonics -> English (International).

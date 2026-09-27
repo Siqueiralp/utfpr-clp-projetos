@@ -9,3 +9,8 @@ no SIMATIC Manager.
 
 As fontes ainda precisam ser compiladas no STEP 7 e testadas no PLCSIM
 ou no CLP da bancada antes de serem consideradas validadas.
+
+Uma [tentativa de validação local do Projeto 1](Projeto1/VALIDACAO_LOCAL_2026-09-27.md)
+registra a importação no STEP 7 V5.7 e a abertura do PLCSIM. O teste ficou
+inconclusivo porque o editor LAD/STL/FBD não exibiu nem a fonte nem o OB1
+inicial do projeto de teste.

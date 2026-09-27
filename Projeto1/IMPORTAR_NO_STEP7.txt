@@ -88,7 +88,7 @@ saidas usadas pela bancada realmente estao mapeadas nesse byte.
 
 LIMITACAO DE VALIDACAO
 ----------------------
-A fonte foi montada para a sintaxe do STEP 7 Classic S7-300 e revisada
-logicamente, mas nao foi compilada dentro da sua instalacao local do STEP 7.
-Se o compilador apontar uma linha, envie o erro/print: normalmente qualquer
-ajuste necessario sera de mnemonico ou detalhe de versao, nao da logica.
+A fonte foi importada no STEP 7 Classic V5.7 em 27/09/2026. A tentativa de
+compilacao foi inconclusiva: o editor LAD/STL/FBD abriu vazio inclusive para
+o OB1 inicial criado pelo assistente. Nao houve teste funcional no PLCSIM.
+Consulte VALIDACAO_LOCAL_2026-09-27.md para o procedimento e as observacoes.

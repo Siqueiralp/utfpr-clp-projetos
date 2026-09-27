@@ -1,0 +1,49 @@
+FUNCTION_BLOCK FB107
+TITLE = 'Projeto 7 - Shift_Register_BIT'
+VAR_INPUT
+    Forwardpulse : BOOL;
+    Forwarddata : BOOL;
+    Backwardpulse : BOOL;
+    Backwarddata : BOOL;
+    Reset : BOOL;
+END_VAR
+VAR_OUTPUT
+    Q0 : BOOL; Q1 : BOOL; Q2 : BOOL; Q3 : BOOL;
+    Q4 : BOOL; Q5 : BOOL; Q6 : BOOL; Q7 : BOOL;
+END_VAR
+VAR
+    anteriorF : BOOL := FALSE;
+    anteriorB : BOOL := FALSE;
+END_VAR
+VAR_TEMP
+    bordaF : BOOL;
+    bordaB : BOOL;
+END_VAR
+BEGIN
+    bordaF := Forwardpulse AND NOT anteriorF;
+    bordaB := Backwardpulse AND NOT anteriorB;
+    anteriorF := Forwardpulse;
+    anteriorB := Backwardpulse;
+    IF Reset THEN
+        Q0 := FALSE; Q1 := FALSE; Q2 := FALSE; Q3 := FALSE;
+        Q4 := FALSE; Q5 := FALSE; Q6 := FALSE; Q7 := FALSE;
+    ELSIF bordaF AND NOT bordaB THEN
+        Q7 := Q6; Q6 := Q5; Q5 := Q4; Q4 := Q3;
+        Q3 := Q2; Q2 := Q1; Q1 := Q0; Q0 := Forwarddata;
+    ELSIF bordaB AND NOT bordaF THEN
+        Q0 := Q1; Q1 := Q2; Q2 := Q3; Q3 := Q4;
+        Q4 := Q5; Q5 := Q6; Q6 := Q7; Q7 := Backwarddata;
+    END_IF;
+END_FUNCTION_BLOCK
+
+ORGANIZATION_BLOCK OB1
+VAR_TEMP HEADER : ARRAY [1..20] OF BYTE; END_VAR
+BEGIN
+    FB107.DB107(Forwardpulse := I0.0, Forwarddata := I0.1,
+                Backwardpulse := I0.2, Backwarddata := I0.3,
+                Reset := I0.4);
+    Q0.0 := DB107.Q0; Q0.1 := DB107.Q1;
+    Q0.2 := DB107.Q2; Q0.3 := DB107.Q3;
+    Q0.4 := DB107.Q4; Q0.5 := DB107.Q5;
+    Q0.6 := DB107.Q6; Q0.7 := DB107.Q7;
+END_ORGANIZATION_BLOCK

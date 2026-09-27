@@ -1,0 +1,78 @@
+MAPA LOGICO - PROJETO 1
+========================
+
+Entradas
+--------
+I0.0  Botao_Pedestre
+
+Saidas
+------
+Q0.0  Verde_Via1
+Q0.1  Amarelo_Via1
+Q0.2  Vermelho_Via1
+Q0.3  Verde_Via2
+Q0.4  Amarelo_Via2
+Q0.5  Vermelho_Via2
+Q0.6  Verde_Pedestre
+Q0.7  Vermelho_Pedestre
+
+Estados normais
+---------------
+M0.0  Etapa_1: V1 vermelho / V2 verde      30 s
+M0.1  Etapa_2: V1 vermelho / V2 amarelo     4 s
+M0.2  Etapa_3: ambas vermelhas               2 s
+M0.3  Etapa_4: V1 verde / V2 vermelho       30 s
+M0.4  Etapa_5: V1 amarelo / V2 vermelho      4 s
+M0.5  Etapa_6: ambas vermelhas               2 s
+
+Pedido de pedestre
+------------------
+M0.6  Pedestre_Pendente
+M1.0  Ped_Verde
+M1.1  Ped_Pisca
+M1.2  Retoma_Via1
+
+Temporizadores TOF
+------------------
+T0  30 s     Etapa_1
+T1   4 s     Etapa_2
+T2   2 s     Etapa_3
+T3  30 s     Etapa_4
+T4   4 s     Etapa_5
+T5   2 s     Etapa_6
+T6  15 s     Verde pedestre
+T7   5 s     Vermelho pedestre piscante
+T8 500 ms    Metade ligada do pisca
+T9 500 ms    Metade desligada do pisca
+
+Como o TOF gera uma duracao de etapa
+------------------------------------
+Cada estado passa por um detector de borda positiva (FP), produzindo um pulso
+de um scan. Esse pulso entra no temporizador OFF-delay.
+
+Scan de entrada da etapa:
+  FP = 1 -> Tn = 1
+
+Scan seguinte:
+  FP = 0 -> ocorre a borda negativa que inicia o TOF.
+
+Durante o tempo configurado:
+  Tn continua = 1.
+
+Ao terminar:
+  Tn = 0 -> a logica SET/RESET troca para a proxima etapa.
+
+Isso usa justamente o comportamento "invertido" do TOF exigido no projeto.
+
+Pedestre
+--------
+O pulso da botoeira e detectado por FP M3.2 e memorizado em M0.6.
+Se o pedido existir ao terminar uma fase amarela, o ciclo entra na rotina
+de pedestre. Se a botoeira for pressionada durante a fase de ambas as vias
+vermelhas, o pedido tambem pode ser atendido ao fim dessa fase segura.
+
+Retoma_Via1 = 1:
+  depois do pedestre -> Etapa_4 -> Via 1 verde.
+
+Retoma_Via1 = 0:
+  depois do pedestre -> Etapa_1 -> Via 2 verde.

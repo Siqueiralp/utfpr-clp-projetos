@@ -1,0 +1,8 @@
+// Compile FB107 (Projeto 7) e FB108 (Projeto 8) antes deste OB1.
+ORGANIZATION_BLOCK OB1
+VAR_TEMP HEADER : ARRAY [1..20] OF BYTE; END_VAR
+BEGIN
+    FB108.DB108(Maceio := TRUE, TempoVermelho := T#30S,
+                TempoVerde := T#30S, TempoAmarelo := T#4S,
+                TempoDeslocamento := T#1S);
+END_ORGANIZATION_BLOCK

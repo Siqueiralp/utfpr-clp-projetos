@@ -1,0 +1,97 @@
+FUNCTION_BLOCK FB111
+TITLE = 'Passo sequenciador com entrada OU'
+VAR_INPUT
+    SetA : BOOL;
+    SetB : BOOL;
+    Reset : BOOL;
+END_VAR
+VAR_OUTPUT
+    X : BOOL := FALSE;
+END_VAR
+BEGIN
+    IF Reset THEN X := FALSE;
+    ELSIF SetA OR SetB THEN X := TRUE;
+    END_IF;
+END_FUNCTION_BLOCK
+
+FUNCTION_BLOCK FB211
+TITLE = 'Projeto 11 - semaforo GRAFCET com OU'
+VAR
+    s0 : FB111; s1 : FB111; s2 : FB111;
+    s3 : FB111; s4 : FB111; s5 : FB111;
+    s6 : FB111; s7 : FB111;
+    iniciado : BOOL := FALSE;
+    pedido : BOOL := FALSE;
+    anteriorBotao : BOOL := FALSE;
+    voltaVia1 : BOOL := TRUE;
+    fim0 : BOOL; fim1 : BOOL; fim2 : BOOL; fim3 : BOOL;
+    fim4 : BOOL; fim5 : BOOL; fim6 : BOOL; fim7 : BOOL;
+    resultado : S5TIME;
+END_VAR
+VAR_TEMP
+    t01 : BOOL; t12 : BOOL; t16 : BOOL;
+    t23 : BOOL; t26 : BOOL; t34 : BOOL;
+    t45 : BOOL; t46 : BOOL; t50 : BOOL; t56 : BOOL;
+    t67 : BOOL; t70 : BOOL; t73 : BOOL;
+    millis : DINT;
+END_VAR
+BEGIN
+    IF I0.0 AND NOT anteriorBotao THEN pedido := TRUE; END_IF;
+    anteriorBotao := I0.0;
+
+    resultado := S_ODT(T_NO := T110, S := s0.X, TV := T#30S, R := FALSE, Q := fim0);
+    resultado := S_ODT(T_NO := T111, S := s1.X, TV := T#4S, R := FALSE, Q := fim1);
+    resultado := S_ODT(T_NO := T112, S := s2.X, TV := T#2S, R := FALSE, Q := fim2);
+    resultado := S_ODT(T_NO := T113, S := s3.X, TV := T#30S, R := FALSE, Q := fim3);
+    resultado := S_ODT(T_NO := T114, S := s4.X, TV := T#4S, R := FALSE, Q := fim4);
+    resultado := S_ODT(T_NO := T115, S := s5.X, TV := T#2S, R := FALSE, Q := fim5);
+    resultado := S_ODT(T_NO := T116, S := s6.X, TV := T#15S, R := FALSE, Q := fim6);
+    resultado := S_ODT(T_NO := T117, S := s7.X, TV := T#5S, R := FALSE, Q := fim7);
+
+    t01 := s0.X AND fim0;
+    t12 := s1.X AND fim1 AND NOT pedido;
+    t16 := s1.X AND fim1 AND pedido;
+    t23 := s2.X AND fim2 AND NOT pedido;
+    t26 := s2.X AND fim2 AND pedido;
+    t34 := s3.X AND fim3;
+    t45 := s4.X AND fim4 AND NOT pedido;
+    t46 := s4.X AND fim4 AND pedido;
+    t50 := s5.X AND fim5 AND NOT pedido;
+    t56 := s5.X AND fim5 AND pedido;
+    t67 := s6.X AND fim6;
+    t70 := s7.X AND fim7 AND NOT voltaVia1;
+    t73 := s7.X AND fim7 AND voltaVia1;
+
+    IF t16 OR t26 THEN voltaVia1 := TRUE; pedido := FALSE; END_IF;
+    IF t46 OR t56 THEN voltaVia1 := FALSE; pedido := FALSE; END_IF;
+
+    // O passo 6 recebe duas ramificacoes OU (vias 1 e 2).
+    s0(SetA := NOT iniciado, SetB := t50 OR t70, Reset := t01);
+    s1(SetA := t01, SetB := FALSE, Reset := t12 OR t16);
+    s2(SetA := t12, SetB := FALSE, Reset := t23 OR t26);
+    s3(SetA := t23, SetB := t73, Reset := t34);
+    s4(SetA := t34, SetB := FALSE, Reset := t45 OR t46);
+    s5(SetA := t45, SetB := FALSE, Reset := t50 OR t56);
+    s6(SetA := t16 OR t26, SetB := t46 OR t56, Reset := t67);
+    s7(SetA := t67, SetB := FALSE, Reset := t70 OR t73);
+    iniciado := TRUE;
+
+    Q0.0 := s3.X;
+    Q0.1 := s4.X;
+    Q0.2 := s0.X OR s1.X OR s2.X OR s5.X OR s6.X OR s7.X;
+    Q0.3 := s0.X;
+    Q0.4 := s1.X;
+    Q0.5 := s2.X OR s3.X OR s4.X OR s5.X OR s6.X OR s7.X;
+    Q0.6 := s6.X;
+    Q0.7 := NOT s6.X;
+    IF s7.X THEN
+        millis := TIME_TO_DINT(SFC64());
+        Q0.7 := (millis MOD 1000) < 500;
+    END_IF;
+END_FUNCTION_BLOCK
+
+ORGANIZATION_BLOCK OB1
+VAR_TEMP HEADER : ARRAY [1..20] OF BYTE; END_VAR
+BEGIN
+    FB211.DB211();
+END_ORGANIZATION_BLOCK

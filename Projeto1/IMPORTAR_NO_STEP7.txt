@@ -1,0 +1,94 @@
+PROJETO 1 - SEMAFORO INTUITIVO COM TOF
+========================================
+
+Alvo usado
+----------
+CPU: CPU314C-2 DP
+Order No.: 6ES7 314-6CG03-0AB0
+MPI: 2
+Software: SIMATIC Manager / STEP 7 Classic
+OB principal: OB1
+Linguagem de visualizacao desejada: LAD
+
+Arquivos
+--------
+1. Projeto1_TOF.awl
+   Fonte STL/AWL externa. Ao compilar, gera/substitui o OB1.
+
+2. Projeto1_Symbols.sdf
+   Tabela de simbolos em System Data Format (SDF).
+
+3. MAPA_LOGICA.txt
+   Resumo das etapas, enderecos e comportamento esperado.
+
+IMPORTAR A TABELA DE SIMBOLOS
+-----------------------------
+1. Abra S7 Program -> Symbols.
+2. No Symbol Editor, use Table -> Import (ou menu equivalente da sua versao).
+3. Selecione Projeto1_Symbols.sdf.
+4. Formato: SDF.
+5. Se houver pergunta sobre sobrescrever simbolos existentes, NAO e necessario
+   importar novamente o simbolo "Cycle Execution"; este arquivo nao o inclui.
+
+IMPORTAR A LOGICA
+-----------------
+1. No SIMATIC Manager, expanda S7 Program.
+2. Abra a pasta Sources.
+3. Menu Insert -> External Source File.
+4. Selecione Projeto1_TOF.awl.
+5. O arquivo aparecera em Sources.
+6. Clique com o botao direito na fonte -> Compile.
+7. O OB1 gerado aparecera em Blocks.
+8. Abra OB1.
+9. Tente View -> LAD para visualizar os Networks em Ladder.
+
+IMPORTANTE SOBRE MNEMONICS
+--------------------------
+A fonte usa mnemonicos em INGLES/INTERNATIONAL:
+A, AN, O, S, R, FP e SF.
+
+Se o compilador reclamar especificamente de SF, verifique:
+Options -> Customize -> Language / Mnemonics -> English (International).
+
+No conjunto alemao, o OFF-delay pode aparecer como SA em vez de SF.
+
+ANTES DO PRIMEIRO TESTE
+-----------------------
+Como a inicializacao usa M0.7 (Inicializado), inicie o PLCSIM com memoria limpa
+ou faca MRES antes do primeiro RUN. Assim M0.7 comeca em zero e Etapa_1 e
+ativada corretamente.
+
+TESTE BASICO SEM PEDESTRE
+-------------------------
+Com I0.0 = 0, a sequencia esperada e:
+
+30 s  -> V1 vermelho / V2 verde
+4 s   -> V1 vermelho / V2 amarelo
+2 s   -> ambas vermelhas
+30 s  -> V1 verde / V2 vermelho
+4 s   -> V1 amarelo / V2 vermelho
+2 s   -> ambas vermelhas
+repete
+
+TESTE DO PEDESTRE
+-----------------
+1. Durante verde ou amarelo de uma via, de um pulso em I0.0.
+2. M0.6 (Pedestre_Pendente) deve memorizar o pedido.
+3. O pedido so e atendido em uma transicao segura depois do amarelo.
+4. Durante a travessia:
+   - Q0.6 verde pedestre: 15 s
+   - depois Q0.7 vermelho pedestre pisca por 5 s
+5. Ao terminar, fica verde a via que estava vermelha antes da chamada.
+
+OBSERVACAO SOBRE HARDWARE REAL
+------------------------------
+Os enderecos Q0.0...Q0.7 foram escolhidos para o projeto/simulacao.
+Antes de baixar no CLP fisico do laboratorio, confira no HW Config se as
+saidas usadas pela bancada realmente estao mapeadas nesse byte.
+
+LIMITACAO DE VALIDACAO
+----------------------
+A fonte foi montada para a sintaxe do STEP 7 Classic S7-300 e revisada
+logicamente, mas nao foi compilada dentro da sua instalacao local do STEP 7.
+Se o compilador apontar uma linha, envie o erro/print: normalmente qualquer
+ajuste necessario sera de mnemonico ou detalhe de versao, nao da logica.

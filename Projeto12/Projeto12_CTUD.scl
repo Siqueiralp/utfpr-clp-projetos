@@ -1,0 +1,44 @@
+FUNCTION_BLOCK FB112
+TITLE = 'Projeto 12 - contador crescente e decrescente IEC'
+VAR_INPUT
+    CU : BOOL; CD : BOOL; R : BOOL; LD : BOOL;
+    PV : INT;
+END_VAR
+VAR_OUTPUT
+    QU : BOOL; QD : BOOL; CV : INT := 0;
+END_VAR
+VAR
+    anteriorCU : BOOL := FALSE;
+    anteriorCD : BOOL := FALSE;
+END_VAR
+VAR_TEMP
+    sobe : BOOL;
+    desce : BOOL;
+END_VAR
+BEGIN
+    sobe := CU AND NOT anteriorCU;
+    desce := CD AND NOT anteriorCD;
+    anteriorCU := CU;
+    anteriorCD := CD;
+    IF R THEN
+        CV := 0;
+    ELSIF LD THEN
+        CV := PV;
+    ELSIF sobe AND NOT desce AND (CV < 32767) THEN
+        CV := CV + 1;
+    ELSIF desce AND NOT sobe AND (CV > -32768) THEN
+        CV := CV - 1;
+    END_IF;
+    QU := CV >= PV;
+    QD := CV <= 0;
+END_FUNCTION_BLOCK
+
+ORGANIZATION_BLOCK OB1
+VAR_TEMP HEADER : ARRAY [1..20] OF BYTE; END_VAR
+BEGIN
+    FB112.DB112(CU := I0.0, CD := I0.1, R := I0.2,
+                LD := I0.3, PV := 10);
+    Q0.0 := DB112.QU;
+    Q0.1 := DB112.QD;
+    MW100 := DB112.CV;
+END_ORGANIZATION_BLOCK

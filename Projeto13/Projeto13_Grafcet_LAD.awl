@@ -1,0 +1,283 @@
+ORGANIZATION_BLOCK OB 1
+TITLE = "Projeto 13 - Semaforo GRAFCET Ladder passo a passo"
+VERSION : 0.1
+
+VAR_TEMP
+  OB1_EV_CLASS : BYTE ;
+  OB1_SCAN_1 : BYTE ;
+  OB1_PRIORITY : BYTE ;
+  OB1_OB_NUMBR : BYTE ;
+  OB1_RESERVED_1 : BYTE ;
+  OB1_RESERVED_2 : BYTE ;
+  OB1_PREV_CYCLE : INT ;
+  OB1_MIN_CYCLE : INT ;
+  OB1_MAX_CYCLE : INT ;
+  OB1_DATE_TIME : DATE_AND_TIME ;
+END_VAR
+
+BEGIN
+
+NETWORK
+TITLE = "Inicializacao - ativa Passo 1"
+      AN    M      0.7;
+      S     M      0.0;
+
+NETWORK
+TITLE = "Inicializacao - trava primeiro scan"
+      AN    M      0.7;
+      S     M      0.7;
+
+NETWORK
+TITLE = "Memoriza pedido de pedestre por borda"
+      A     I      0.0;
+      FP    M      3.2;
+      S     M      0.6;
+
+NETWORK
+TITLE = "Passo 1 - TON 30 s"
+      A     M      0.0;
+      L     S5T#30S;
+      SD    T      0;
+
+NETWORK
+TITLE = "Passo 1 para Passo 2"
+      A     M      0.0;
+      A     T      0;
+      S     M      0.1;
+      R     M      0.0;
+
+NETWORK
+TITLE = "Passo 2 - TON 4 s"
+      A     M      0.1;
+      L     S5T#4S;
+      SD    T      1;
+
+NETWORK
+TITLE = "Passo 2 sem pedestre para Passo 3"
+      A     M      0.1;
+      A     T      1;
+      AN    M      0.6;
+      S     M      0.2;
+      R     M      0.1;
+
+NETWORK
+TITLE = "Passo 2 com pedestre"
+      A     M      0.1;
+      A     T      1;
+      A     M      0.6;
+      S     M      1.0;
+      S     M      1.2;
+      R     M      0.6;
+      R     M      0.1;
+
+NETWORK
+TITLE = "Passo 3 - TON 2 s"
+      A     M      0.2;
+      L     S5T#2S;
+      SD    T      2;
+
+NETWORK
+TITLE = "Passo 3 sem novo pedido para Passo 4"
+      A     M      0.2;
+      A     T      2;
+      AN    M      0.6;
+      S     M      0.3;
+      R     M      0.2;
+
+NETWORK
+TITLE = "Passo 3 com novo pedido"
+      A     M      0.2;
+      A     T      2;
+      A     M      0.6;
+      S     M      1.0;
+      S     M      1.2;
+      R     M      0.6;
+      R     M      0.2;
+
+NETWORK
+TITLE = "Passo 4 - TON 30 s"
+      A     M      0.3;
+      L     S5T#30S;
+      SD    T      3;
+
+NETWORK
+TITLE = "Passo 4 para Passo 5"
+      A     M      0.3;
+      A     T      3;
+      S     M      0.4;
+      R     M      0.3;
+
+NETWORK
+TITLE = "Passo 5 - TON 4 s"
+      A     M      0.4;
+      L     S5T#4S;
+      SD    T      4;
+
+NETWORK
+TITLE = "Passo 5 sem pedestre para Passo 6"
+      A     M      0.4;
+      A     T      4;
+      AN    M      0.6;
+      S     M      0.5;
+      R     M      0.4;
+
+NETWORK
+TITLE = "Passo 5 com pedestre"
+      A     M      0.4;
+      A     T      4;
+      A     M      0.6;
+      S     M      1.0;
+      R     M      1.2;
+      R     M      0.6;
+      R     M      0.4;
+
+NETWORK
+TITLE = "Passo 6 - TON 2 s"
+      A     M      0.5;
+      L     S5T#2S;
+      SD    T      5;
+
+NETWORK
+TITLE = "Passo 6 sem novo pedido para Passo 1"
+      A     M      0.5;
+      A     T      5;
+      AN    M      0.6;
+      S     M      0.0;
+      R     M      0.5;
+
+NETWORK
+TITLE = "Passo 6 com novo pedido"
+      A     M      0.5;
+      A     T      5;
+      A     M      0.6;
+      S     M      1.0;
+      R     M      1.2;
+      R     M      0.6;
+      R     M      0.5;
+
+NETWORK
+TITLE = "Pedestre verde - TON 15 s"
+      A     M      1.0;
+      L     S5T#15S;
+      SD    T      6;
+
+NETWORK
+TITLE = "Pedestre verde para vermelho piscante"
+      A     M      1.0;
+      A     T      6;
+      S     M      1.1;
+      S     M      1.3;
+      R     M      1.0;
+
+NETWORK
+TITLE = "Pedestre piscante - TON total 5 s"
+      A     M      1.1;
+      L     S5T#5S;
+      SD    T      7;
+
+NETWORK
+TITLE = "Fim pedestre - retoma Via 1"
+      A     M      1.1;
+      A     T      7;
+      A     M      1.2;
+      S     M      0.3;
+      R     M      1.3;
+      R     M      1.4;
+      R     M      1.1;
+      R     M      1.2;
+
+NETWORK
+TITLE = "Fim pedestre - retoma Via 2"
+      A     M      1.1;
+      A     T      7;
+      AN    M      1.2;
+      S     M      0.0;
+      R     M      1.3;
+      R     M      1.4;
+      R     M      1.1;
+
+NETWORK
+TITLE = "Pisca pedestre - fase ligada TON 500 ms"
+      A     M      1.1;
+      A     M      1.3;
+      L     S5T#500MS;
+      SD    T      8;
+
+NETWORK
+TITLE = "Pisca pedestre - ligada para desligada"
+      A     M      1.1;
+      A     M      1.3;
+      A     T      8;
+      S     M      1.4;
+      R     M      1.3;
+
+NETWORK
+TITLE = "Pisca pedestre - fase desligada TON 500 ms"
+      A     M      1.1;
+      A     M      1.4;
+      L     S5T#500MS;
+      SD    T      9;
+
+NETWORK
+TITLE = "Pisca pedestre - desligada para ligada"
+      A     M      1.1;
+      A     M      1.4;
+      A     T      9;
+      S     M      1.3;
+      R     M      1.4;
+
+NETWORK
+TITLE = "Saida - Verde Via 1"
+      A     M      0.3;
+      =     Q      0.0;
+
+NETWORK
+TITLE = "Saida - Amarelo Via 1"
+      A     M      0.4;
+      =     Q      0.1;
+
+NETWORK
+TITLE = "Saida - Vermelho Via 1"
+      A     M      0.0;
+      O     M      0.1;
+      O     M      0.2;
+      O     M      0.5;
+      O     M      1.0;
+      O     M      1.1;
+      =     Q      0.2;
+
+NETWORK
+TITLE = "Saida - Verde Via 2"
+      A     M      0.0;
+      =     Q      0.3;
+
+NETWORK
+TITLE = "Saida - Amarelo Via 2"
+      A     M      0.1;
+      =     Q      0.4;
+
+NETWORK
+TITLE = "Saida - Vermelho Via 2"
+      A     M      0.2;
+      O     M      0.3;
+      O     M      0.4;
+      O     M      0.5;
+      O     M      1.0;
+      O     M      1.1;
+      =     Q      0.5;
+
+NETWORK
+TITLE = "Saida - Verde Pedestre"
+      A     M      1.0;
+      =     Q      0.6;
+
+NETWORK
+TITLE = "Saida - Vermelho Pedestre"
+      AN    M      1.1;
+      O     M      1.3;
+      AN    M      1.0;
+      =     Q      0.7;
+
+END_ORGANIZATION_BLOCK
+
+

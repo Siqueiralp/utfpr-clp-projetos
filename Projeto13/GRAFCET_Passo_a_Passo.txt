@@ -1,0 +1,23 @@
+PROJETO 13 - GRAFCET LAD, METODO PASSO A PASSO
+
+Cada passo e um bit de memoria M0.0 a M0.5, M1.0 ou M1.1.
+As redes do OB1 fazem SET do proximo passo e RESET do atual.
+Somente o bit do passo ativo liga suas lampadas.
+
+Passo 1  M0.0  V1 vermelho, V2 verde             30 s
+Passo 2  M0.1  V1 vermelho, V2 amarelo            4 s
+Passo 3  M0.2  V1 vermelho, V2 vermelho           2 s
+Passo 4  M0.3  V1 verde, V2 vermelho            30 s
+Passo 5  M0.4  V1 amarelo, V2 vermelho            4 s
+Passo 6  M0.5  V1 vermelho, V2 vermelho           2 s
+Passo P1 M1.0  Veiculos vermelhos, ped verde     15 s
+Passo P2 M1.1  Veiculos vermelhos, ped pisca     5 s
+
+Transicoes normais: 1 -> 2 -> 3 -> 4 -> 5 -> 6 -> 1.
+Se M0.6 (pedido) estiver ativo ao fim de 2 ou 3, segue a P1
+e depois P2 -> 4. Se estiver ativo ao fim de 5 ou 6, segue
+a P1 e depois P2 -> 1. A memoria M1.2 guarda qual via abrir.
+
+O pedido I0.0 e capturado em uma borda positiva e permanece em M0.6
+ate entrar no passo P1. Todos os temporizadores sao TON. As redes
+da fonte AWL podem ser abertas em LAD no editor STEP 7 Classic.

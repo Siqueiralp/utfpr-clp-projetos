@@ -1,0 +1,10 @@
+# Materiais de aula e pacotes locais; o repositorio guarda as fontes.
+*.pdf
+*.docx
+*.zip
+
+# Arquivos temporarios do STEP 7 e do Windows.
+*.bak
+*.tmp
+Thumbs.db
+desktop.ini

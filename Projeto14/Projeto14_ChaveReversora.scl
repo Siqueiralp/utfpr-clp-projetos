@@ -1,0 +1,73 @@
+// Requer FB111 do Projeto 11 compilado no mesmo S7 Program.
+FUNCTION_BLOCK FB214
+TITLE = 'Projeto 14 - chave reversora GRAFCET'
+VAR
+    frente : FB111;
+    reverso : FB111;
+    iniciado : BOOL := FALSE;
+    automatico : BOOL := TRUE;
+    anteriorAuto : BOOL := FALSE;
+    armaTempo : BOOL := FALSE;
+    fimTempo : BOOL := FALSE;
+    tempo : S5TIME;
+END_VAR
+VAR_TEMP
+    ligaF : BOOL; desligaF : BOOL;
+    ligaR : BOOL; desligaR : BOOL;
+END_VAR
+BEGIN
+    ligaF := FALSE; ligaR := FALSE;
+    desligaF := FALSE; desligaR := FALSE;
+    IF NOT iniciado THEN
+        ligaF := TRUE; // estado inicial: giro para frente
+        iniciado := TRUE;
+    END_IF;
+
+    IF I0.2 AND NOT anteriorAuto THEN
+        automatico := TRUE;
+        armaTempo := FALSE;
+    END_IF;
+    anteriorAuto := I0.2;
+
+    tempo := S_ODT(T_NO := T140, S := armaTempo AND automatico,
+                   TV := T#5S, R := NOT automatico, Q := fimTempo);
+
+    IF I0.3 OR (I0.0 AND I0.1) THEN
+        automatico := FALSE;
+        armaTempo := FALSE;
+        desligaF := TRUE; desligaR := TRUE;
+        ligaF := FALSE; ligaR := FALSE;
+    ELSIF I0.0 THEN
+        automatico := FALSE;
+        armaTempo := FALSE;
+        ligaF := TRUE; desligaR := TRUE;
+        ligaR := FALSE;
+    ELSIF I0.1 THEN
+        automatico := FALSE;
+        armaTempo := FALSE;
+        ligaR := TRUE; desligaF := TRUE;
+        ligaF := FALSE;
+    ELSIF automatico THEN
+        IF fimTempo THEN
+            armaTempo := FALSE;
+            IF frente.X THEN
+                ligaR := TRUE; desligaF := TRUE;
+            ELSE
+                ligaF := TRUE; desligaR := TRUE;
+            END_IF;
+        ELSIF NOT armaTempo THEN
+            armaTempo := TRUE;
+        END_IF;
+    END_IF;
+
+    frente(SetA := ligaF, SetB := FALSE, Reset := desligaF);
+    reverso(SetA := ligaR, SetB := FALSE, Reset := desligaR);
+    Q0.0 := frente.X AND NOT reverso.X;
+    Q0.1 := reverso.X AND NOT frente.X;
+END_FUNCTION_BLOCK
+
+ORGANIZATION_BLOCK OB1
+VAR_TEMP HEADER : ARRAY [1..20] OF BYTE; END_VAR
+BEGIN
+    FB214.DB214();
+END_ORGANIZATION_BLOCK

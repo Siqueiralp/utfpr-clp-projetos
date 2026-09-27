@@ -1,0 +1,79 @@
+TYPE UDT106
+STRUCT
+    estado : ARRAY[0..7] OF BYTE;
+    tempo : ARRAY[0..7] OF S5TIME;
+END_STRUCT;
+END_TYPE
+
+FUNCTION_BLOCK FB106
+TITLE = 'Projeto 6 - matrizes e um TOF'
+VAR
+    tabela : UDT106;
+    iniciado : BOOL := FALSE;
+    etapa : INT := 0;
+    volta : INT := 3;
+    pedido : BOOL := FALSE;
+    botaoAnterior : BOOL := FALSE;
+    pulsoInicio : BOOL := TRUE;
+    tempoAtivo : BOOL := FALSE;
+    restante : WORD;
+    resultado : S5TIME;
+END_VAR
+VAR_TEMP
+    milissegundos : DINT;
+END_VAR
+BEGIN
+    IF NOT iniciado THEN
+        tabela.estado[0] := B#16#8C; tabela.tempo[0] := T#30S;
+        tabela.estado[1] := B#16#94; tabela.tempo[1] := T#4S;
+        tabela.estado[2] := B#16#A4; tabela.tempo[2] := T#2S;
+        tabela.estado[3] := B#16#A1; tabela.tempo[3] := T#30S;
+        tabela.estado[4] := B#16#A2; tabela.tempo[4] := T#4S;
+        tabela.estado[5] := B#16#A4; tabela.tempo[5] := T#2S;
+        tabela.estado[6] := B#16#64; tabela.tempo[6] := T#15S;
+        tabela.estado[7] := B#16#A4; tabela.tempo[7] := T#5S;
+        iniciado := TRUE;
+    END_IF;
+    IF I0.0 AND NOT botaoAnterior THEN pedido := TRUE; END_IF;
+    botaoAnterior := I0.0;
+
+    // PulsoInicio fica alto por um scan; a borda de descida aciona o TOF.
+    resultado := S_OFFDT(T_NO := T60, S := pulsoInicio,
+                         TV := tabela.tempo[etapa], R := FALSE,
+                         BI := restante, Q := tempoAtivo);
+    IF pulsoInicio THEN
+        pulsoInicio := FALSE;
+    ELSIF NOT tempoAtivo THEN
+        CASE etapa OF
+            0: etapa := 1;
+            1, 2: IF pedido THEN
+                      etapa := 6; volta := 3; pedido := FALSE;
+                  ELSE
+                      IF etapa = 1 THEN etapa := 2; ELSE etapa := 3; END_IF;
+                  END_IF;
+            3: etapa := 4;
+            4, 5: IF pedido THEN
+                      etapa := 6; volta := 0; pedido := FALSE;
+                  ELSE
+                      IF etapa = 4 THEN etapa := 5; ELSE etapa := 0; END_IF;
+                  END_IF;
+            6: etapa := 7;
+            7: etapa := volta;
+        END_CASE;
+        pulsoInicio := TRUE;
+    END_IF;
+
+    QB0 := tabela.estado[etapa];
+    IF etapa = 7 THEN
+        milissegundos := TIME_TO_DINT(SFC64());
+        IF (milissegundos MOD 1000) >= 500 THEN
+            QB0 := B#16#24; // apaga apenas o vermelho pedestre
+        END_IF;
+    END_IF;
+END_FUNCTION_BLOCK
+
+ORGANIZATION_BLOCK OB1
+VAR_TEMP HEADER : ARRAY [1..20] OF BYTE; END_VAR
+BEGIN
+    FB106.DB106();
+END_ORGANIZATION_BLOCK

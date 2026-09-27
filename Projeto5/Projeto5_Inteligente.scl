@@ -1,21 +1,16 @@
 FUNCTION_BLOCK FB105
-TITLE = 'Projeto 5 - fluxo e alerta noturno'
+TITLE = 'Projeto 5 - fluxo e alerta noturno minimo'
 VAR
     etapa : INT := 0;
-    voltaVia1 : BOOL := TRUE;
     pedido : BOOL := FALSE;
     botaoAnterior : BOOL := FALSE;
 
     fluxo1 : INT := 0;
     fluxo2 : INT := 0;
-    verdeEscolhido : S5TIME := T#20S;
 
-    hora : INT := 12;
-    noiteAnterior : BOOL := FALSE;
-    relogioLido : BOOL := FALSE;
+    noite : BOOL := FALSE;
+    minutoAnterior : INT := -1;
     clockAnterior : BOOL := FALSE;
-
-    armaJanela : BOOL := FALSE;
     zeraFluxo : BOOL := TRUE;
 
     armaEtapa : BOOL := FALSE;
@@ -24,7 +19,9 @@ VAR_TEMP
     agora : DATE_AND_TIME;
     bytesAgora AT agora : ARRAY[0..7] OF BYTE;
     retornoRelogio : INT;
-    noite : BOOL;
+    horaAtual : INT;
+    minutoAtual : INT;
+    atualizaRelogio : BOOL;
 
     valor1 : WORD;
     valor2 : WORD;
@@ -33,131 +30,93 @@ VAR_TEMP
     ativo1 : BOOL;
     ativo2 : BOOL;
 
-    fimJanela : BOOL;
     fimEtapa : BOOL;
     duracao : S5TIME;
     restante : WORD;
     resultado : S5TIME;
-
-    atualizaRelogio : BOOL;
-    piscaAceso : BOOL;
 END_VAR
 BEGIN
-    // M10.7 tem periodo de 2 s quando MB10 e configurado como Clock Memory.
-    // Assim o RTC nao e lido em todos os scans.
-    atualizaRelogio := (M10.7 AND NOT clockAnterior) OR NOT relogioLido;
+    // RTC lido apenas na borda de M10.7 (uma vez a cada 2 s).
+    atualizaRelogio := M10.7 AND NOT clockAnterior;
     clockAnterior := M10.7;
 
     IF atualizaRelogio THEN
         retornoRelogio := SFC1(CDT := agora);
         IF retornoRelogio = 0 THEN
-            hora := BCD_TO_INT(BYTE_TO_WORD(bytesAgora[3]));
-            relogioLido := TRUE;
+            horaAtual := BCD_TO_INT(BYTE_TO_WORD(bytesAgora[3]));
+            minutoAtual := BCD_TO_INT(BYTE_TO_WORD(bytesAgora[4]));
+            noite := (horaAtual >= 22) OR (horaAtual < 6);
+
+            // A mudanca de minuto fecha a janela de contagem de 60 s.
+            IF (minutoAnterior >= 0) AND (minutoAtual <> minutoAnterior) THEN
+                zeraFluxo := TRUE;
+            END_IF;
+            minutoAnterior := minutoAtual;
         END_IF;
     END_IF;
 
-    noite := (hora >= 22) OR (hora < 6);
-
-    // Contadores dedicados preservam os pulsos de trafego sem criar flags extras.
     bcd1 := S_CU(C_NO := C51, CU := I0.1, S := FALSE, PV := 0,
                  R := zeraFluxo, CV := valor1, Q := ativo1);
     bcd2 := S_CU(C_NO := C52, CU := I0.2, S := FALSE, PV := 0,
                  R := zeraFluxo, CV := valor2, Q := ativo2);
 
-    zeraFluxo := FALSE;
-    resultado := S_ODT(T_NO := T51, S := armaJanela, TV := T#60S,
-                       R := FALSE, Q := fimJanela);
-
-    IF fimJanela THEN
+    IF zeraFluxo THEN
         fluxo1 := WORD_TO_INT(valor1);
         fluxo2 := WORD_TO_INT(valor2);
-        zeraFluxo := TRUE;
-        armaJanela := FALSE;
-    ELSIF NOT armaJanela THEN
-        armaJanela := TRUE;
+        zeraFluxo := FALSE;
     END_IF;
 
     IF I0.0 AND NOT botaoAnterior THEN pedido := TRUE; END_IF;
     botaoAnterior := I0.0;
 
     IF noite THEN
-        armaEtapa := FALSE;
         etapa := 0;
+        armaEtapa := FALSE;
         pedido := FALSE;
-    ELSIF noiteAnterior THEN
-        etapa := 0;
-        armaEtapa := FALSE;
-        IF fluxo2 < 20 THEN verdeEscolhido := T#20S;
-        ELSIF fluxo2 <= 40 THEN verdeEscolhido := T#40S;
-        ELSE verdeEscolhido := T#60S; END_IF;
-    END_IF;
-    noiteAnterior := noite;
-
-    CASE etapa OF
-        0, 3: duracao := verdeEscolhido;
-        1, 4: duracao := T#4S;
-        2, 5: duracao := T#2S;
-        6: duracao := T#15S;
-        7: duracao := T#5S;
     ELSE
-        etapa := 0;
-        duracao := T#20S;
-    END_CASE;
+        CASE etapa OF
+            0:
+                IF fluxo2 < 20 THEN duracao := T#20S;
+                ELSIF fluxo2 <= 40 THEN duracao := T#40S;
+                ELSE duracao := T#60S; END_IF;
+            3:
+                IF fluxo1 < 20 THEN duracao := T#20S;
+                ELSIF fluxo1 <= 40 THEN duracao := T#40S;
+                ELSE duracao := T#60S; END_IF;
+            1, 4: duracao := T#4S;
+            2, 5: duracao := T#2S;
+            6, 8: duracao := T#15S;
+            7, 9: duracao := T#5S;
+        ELSE
+            etapa := 0;
+            duracao := T#20S;
+        END_CASE;
 
-    resultado := S_ODT(T_NO := T52,
-                       S := armaEtapa AND NOT noite,
-                       TV := duracao, R := noite,
-                       BI := restante, Q := fimEtapa);
+        resultado := S_ODT(T_NO := T52, S := armaEtapa,
+                           TV := duracao, R := FALSE,
+                           BI := restante, Q := fimEtapa);
 
-    IF NOT noite THEN
         IF fimEtapa THEN
             armaEtapa := FALSE;
             CASE etapa OF
                 0: etapa := 1;
-                1, 2:
-                    IF pedido THEN
-                        etapa := 6;
-                        voltaVia1 := TRUE;
-                        pedido := FALSE;
-                    ELSE
-                        IF etapa = 1 THEN
-                            etapa := 2;
-                        ELSE
-                            etapa := 3;
-                            IF fluxo1 < 20 THEN verdeEscolhido := T#20S;
-                            ELSIF fluxo1 <= 40 THEN verdeEscolhido := T#40S;
-                            ELSE verdeEscolhido := T#60S; END_IF;
-                        END_IF;
-                    END_IF;
+                1:
+                    IF pedido THEN etapa := 6; pedido := FALSE;
+                    ELSE etapa := 2; END_IF;
+                2:
+                    IF pedido THEN etapa := 6; pedido := FALSE;
+                    ELSE etapa := 3; END_IF;
                 3: etapa := 4;
-                4, 5:
-                    IF pedido THEN
-                        etapa := 6;
-                        voltaVia1 := FALSE;
-                        pedido := FALSE;
-                    ELSE
-                        IF etapa = 4 THEN
-                            etapa := 5;
-                        ELSE
-                            etapa := 0;
-                            IF fluxo2 < 20 THEN verdeEscolhido := T#20S;
-                            ELSIF fluxo2 <= 40 THEN verdeEscolhido := T#40S;
-                            ELSE verdeEscolhido := T#60S; END_IF;
-                        END_IF;
-                    END_IF;
+                4:
+                    IF pedido THEN etapa := 8; pedido := FALSE;
+                    ELSE etapa := 5; END_IF;
+                5:
+                    IF pedido THEN etapa := 8; pedido := FALSE;
+                    ELSE etapa := 0; END_IF;
                 6: etapa := 7;
-                7:
-                    IF voltaVia1 THEN
-                        etapa := 3;
-                        IF fluxo1 < 20 THEN verdeEscolhido := T#20S;
-                        ELSIF fluxo1 <= 40 THEN verdeEscolhido := T#40S;
-                        ELSE verdeEscolhido := T#60S; END_IF;
-                    ELSE
-                        etapa := 0;
-                        IF fluxo2 < 20 THEN verdeEscolhido := T#20S;
-                        ELSIF fluxo2 <= 40 THEN verdeEscolhido := T#40S;
-                        ELSE verdeEscolhido := T#60S; END_IF;
-                    END_IF;
+                7: etapa := 3;
+                8: etapa := 9;
+                9: etapa := 0;
             ELSE
                 etapa := 0;
             END_CASE;
@@ -166,14 +125,8 @@ BEGIN
         END_IF;
     END_IF;
 
-    // M10.5 tem periodo de 1 s: 500 ms ligado / 500 ms desligado.
-    piscaAceso := TRUE;
-    IF noite OR (etapa = 7) THEN
-        piscaAceso := M10.5;
-    END_IF;
-
     IF noite THEN
-        IF piscaAceso THEN QB0 := B#16#92;
+        IF M10.5 THEN QB0 := B#16#92;
         ELSE QB0 := B#16#80; END_IF;
     ELSE
         CASE etapa OF
@@ -182,9 +135,9 @@ BEGIN
             2, 5: QB0 := B#16#A4;
             3: QB0 := B#16#A1;
             4: QB0 := B#16#A2;
-            6: QB0 := B#16#64;
-            7:
-                IF piscaAceso THEN QB0 := B#16#A4;
+            6, 8: QB0 := B#16#64;
+            7, 9:
+                IF M10.5 THEN QB0 := B#16#A4;
                 ELSE QB0 := B#16#24; END_IF;
         ELSE
             QB0 := B#16#A4;

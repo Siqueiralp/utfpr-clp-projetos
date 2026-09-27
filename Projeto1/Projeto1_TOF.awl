@@ -194,7 +194,6 @@ TITLE = "Pedestre verde para piscante"
       AN    T      3;
       S     M      1.1;
       S     M      1.3;
-      R     M      1.4;
       R     M      1.0;
       S     M      2.0;
       S     M      2.1;
@@ -209,7 +208,6 @@ TITLE = "Fim pedestre - retoma Via 1"
       R     M      1.1;
       R     M      1.2;
       R     M      1.3;
-      R     M      1.4;
       R     M      2.1;
       S     M      2.0;
 
@@ -222,7 +220,6 @@ TITLE = "Fim pedestre - retoma Via 2"
       S     M      0.0;
       R     M      1.1;
       R     M      1.3;
-      R     M      1.4;
       R     M      2.1;
       S     M      2.0;
 
@@ -253,7 +250,6 @@ NETWORK
 TITLE = "Pisca: desligada para ligada"
       A     M      2.4;
       S     M      1.3;
-      R     M      1.4;
       S     M      2.1;
 
 NETWORK

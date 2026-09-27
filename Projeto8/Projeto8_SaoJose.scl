@@ -14,20 +14,13 @@ VAR_TEMP
     resetReg : BOOL;
     pulsoReg : BOOL;
     dadoReg : BOOL;
-    tick100ms : BOOL;
-    alvo : INT;
-END_VAR
+ END_VAR
 BEGIN
     resetReg := FALSE;
     pulsoReg := FALSE;
     dadoReg := FALSE;
 
-    tick100ms := M10.0 AND NOT clockAnterior;
-    clockAnterior := M10.0;
-
-    IF Maceio THEN alvo := 6; ELSE alvo := 1; END_IF;
-
-    CASE fase OF
+     CASE fase OF
         0: // reset vermelho
             resetReg := TRUE;
             contador := 0;
@@ -37,19 +30,20 @@ BEGIN
             pulsoReg := TRUE;
             dadoReg := TRUE;
             contador := contador + 1;
-            IF contador >= alvo THEN
+            IF (Maceio AND (contador >= 6)) OR
+               (NOT Maceio AND (contador >= 1)) THEN
                 contador := 0;
                 fase := 2;
             END_IF;
 
         2: // vermelho 30 s
-            IF tick100ms THEN
+            IF M10.0 AND NOT clockAnterior THEN
                 contador := contador + 1;
                 IF contador >= 300 THEN contador := 0; fase := 3; END_IF;
             END_IF;
 
         3, 4, 5, 6, 7, 8: // deslocamentos vermelhos de 1 s
-            IF tick100ms THEN
+            IF M10.0 AND NOT clockAnterior THEN
                 contador := contador + 1;
                 IF contador >= 10 THEN
                     contador := 0;
@@ -64,7 +58,7 @@ BEGIN
             END_IF;
 
         9: // amarelo 4 s
-            IF tick100ms THEN
+            IF M10.0 AND NOT clockAnterior THEN
                 contador := contador + 1;
                 IF contador >= 40 THEN contador := 0; fase := 10; END_IF;
             END_IF;
@@ -78,19 +72,20 @@ BEGIN
             pulsoReg := TRUE;
             dadoReg := TRUE;
             contador := contador + 1;
-            IF contador >= alvo THEN
+            IF (Maceio AND (contador >= 6)) OR
+               (NOT Maceio AND (contador >= 1)) THEN
                 contador := 0;
                 fase := 12;
             END_IF;
 
         12: // verde 30 s
-            IF tick100ms THEN
+            IF M10.0 AND NOT clockAnterior THEN
                 contador := contador + 1;
                 IF contador >= 300 THEN contador := 0; fase := 13; END_IF;
             END_IF;
 
         13, 14, 15, 16, 17, 18: // deslocamentos verdes de 1 s
-            IF tick100ms THEN
+            IF M10.0 AND NOT clockAnterior THEN
                 contador := contador + 1;
                 IF contador >= 10 THEN
                     contador := 0;
@@ -105,7 +100,7 @@ BEGIN
             END_IF;
 
         19: // amarelo 4 s
-            IF tick100ms THEN
+            IF M10.0 AND NOT clockAnterior THEN
                 contador := contador + 1;
                 IF contador >= 40 THEN contador := 0; fase := 0; END_IF;
             END_IF;
@@ -118,6 +113,8 @@ BEGIN
     reg(Forwardpulse := pulsoReg, Forwarddata := dadoReg,
         Backwardpulse := FALSE, Backwarddata := FALSE,
         Reset := resetReg);
+
+    clockAnterior := M10.0;
 
     QB0 := B#16#00;
     QB1 := B#16#00;

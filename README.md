@@ -10,7 +10,7 @@ no SIMATIC Manager.
 ## Revisao de simplificacao
 
 Os Projetos 1, 2 e 13 agora usam tabelas SDF com apenas **9 simbolos de I/O**
-e **6 timers compartilhados por duracao**. Os enderecos M/T internos ficaram
+e **5 timers de etapa compartilhados por duracao**; o pisca usa Clock Memory. Os enderecos M/T internos ficaram
 fora da Symbol Table para evitar cadastro manual desnecessario, mantendo a
 estrutura LAD/GRAFCET explicita.
 

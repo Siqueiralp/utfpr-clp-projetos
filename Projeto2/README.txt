@@ -1,15 +1,32 @@
 PROJETO 2 - SEMAFORO COM TON
 
 Alvo: STEP 7 Classic / S7-300. Importe Projeto2_TON.awl em Sources,
-compile e abra OB1 em LAD. Importe o arquivo SDF em Symbols.
+compile e abra o OB1 em LAD.
 
-Este projeto substitui o Projeto 1 no mesmo OB1; mantenha cada projeto
-em um S7 Program separado para nao sobrescrever o anterior.
+SIMBOLOS
+--------
+Projeto2_Symbols.sdf possui somente 9 entradas na tabela:
+I0.0 e Q0.0..Q0.7.
 
-O ciclo e 30 / 4 / 2 / 30 / 4 / 2 segundos. Uma borda na botoeira
-I0.0 guarda o pedido. Depois do amarelo, as duas vias ficam vermelhas,
-o pedestre recebe verde por 15 segundos e vermelho piscante por 5.
-Ao final, abre a via que estava fechada antes da chamada.
+Os estados, flags e timers internos usam enderecos M/T diretamente e nao
+precisam ser cadastrados no Symbol Editor.
 
-Teste em PLCSIM com memoria limpa (MRES) antes do primeiro RUN.
-Confira os enderecos fisicos de saida antes de baixar em bancada.
+SIMPLIFICACAO
+-------------
+Os tempos iguais compartilham o mesmo TON:
+T0 = 30 s (etapas 1 e 4)
+T1 = 4 s  (etapas 2 e 5)
+T2 = 2 s  (etapas 3 e 6)
+T3 = 15 s (pedestre verde)
+T4 = 5 s  (pedestre piscante)
+T5 = 500 ms (alternancia do pisca)
+
+Total: 6 timers.
+
+O ciclo continua 30 / 4 / 2 / 30 / 4 / 2 segundos. Uma borda em I0.0
+memoriza o pedido. Depois do amarelo, as duas vias ficam vermelhas,
+o pedestre recebe verde por 15 s e vermelho piscante por 5 s. Ao final,
+abre a via que estava fechada antes da chamada.
+
+Mantenha cada projeto em um S7 Program separado para nao sobrescrever OB1.
+Teste em PLCSIM com MRES antes do primeiro RUN.

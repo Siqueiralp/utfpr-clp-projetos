@@ -11,15 +11,15 @@ VAR
     tabela : UDT106;
     iniciado : BOOL := FALSE;
     etapa : INT := 0;
-    volta : INT := 3;
+    voltaVia1 : BOOL := TRUE;
     pedido : BOOL := FALSE;
     botaoAnterior : BOOL := FALSE;
     pulsoInicio : BOOL := TRUE;
-    tempoAtivo : BOOL := FALSE;
-    restante : WORD;
-    resultado : S5TIME;
 END_VAR
 VAR_TEMP
+    tempoAtivo : BOOL;
+    restante : WORD;
+    resultado : S5TIME;
     milissegundos : DINT;
 END_VAR
 BEGIN
@@ -34,40 +34,52 @@ BEGIN
         tabela.estado[7] := B#16#A4; tabela.tempo[7] := T#5S;
         iniciado := TRUE;
     END_IF;
+
     IF I0.0 AND NOT botaoAnterior THEN pedido := TRUE; END_IF;
     botaoAnterior := I0.0;
 
-    // PulsoInicio fica alto por um scan; a borda de descida aciona o TOF.
+    // Um unico TOF atende todas as etapas; a matriz fornece o preset.
     resultado := S_OFFDT(T_NO := T60, S := pulsoInicio,
                          TV := tabela.tempo[etapa], R := FALSE,
                          BI := restante, Q := tempoAtivo);
+
     IF pulsoInicio THEN
         pulsoInicio := FALSE;
     ELSIF NOT tempoAtivo THEN
         CASE etapa OF
             0: etapa := 1;
-            1, 2: IF pedido THEN
-                      etapa := 6; volta := 3; pedido := FALSE;
-                  ELSE
-                      IF etapa = 1 THEN etapa := 2; ELSE etapa := 3; END_IF;
-                  END_IF;
+            1, 2:
+                IF pedido THEN
+                    etapa := 6;
+                    voltaVia1 := TRUE;
+                    pedido := FALSE;
+                ELSE
+                    IF etapa = 1 THEN etapa := 2; ELSE etapa := 3; END_IF;
+                END_IF;
             3: etapa := 4;
-            4, 5: IF pedido THEN
-                      etapa := 6; volta := 0; pedido := FALSE;
-                  ELSE
-                      IF etapa = 4 THEN etapa := 5; ELSE etapa := 0; END_IF;
-                  END_IF;
+            4, 5:
+                IF pedido THEN
+                    etapa := 6;
+                    voltaVia1 := FALSE;
+                    pedido := FALSE;
+                ELSE
+                    IF etapa = 4 THEN etapa := 5; ELSE etapa := 0; END_IF;
+                END_IF;
             6: etapa := 7;
-            7: etapa := volta;
+            7:
+                IF voltaVia1 THEN etapa := 3; ELSE etapa := 0; END_IF;
+        ELSE
+            etapa := 0;
         END_CASE;
         pulsoInicio := TRUE;
     END_IF;
 
     QB0 := tabela.estado[etapa];
+
     IF etapa = 7 THEN
         milissegundos := TIME_TO_DINT(SFC64());
         IF (milissegundos MOD 1000) >= 500 THEN
-            QB0 := B#16#24; // apaga apenas o vermelho pedestre
+            QB0 := B#16#24;
         END_IF;
     END_IF;
 END_FUNCTION_BLOCK

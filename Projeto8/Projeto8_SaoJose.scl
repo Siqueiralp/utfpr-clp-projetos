@@ -39,46 +39,34 @@ BEGIN
     END_IF;
 
     // Fases 0..4 = vermelho; 5..9 = verde.
-    CASE fase OF
-        0:  // reset vermelho
-            resetReg := TRUE;
+    IF fase = 0 THEN
+        resetReg := TRUE;
+        contador := 0;
+        fase := 1;
+
+    ELSIF fase = 1 THEN
+        pulsoReg := TRUE;
+        dadoReg := TRUE;
+        contador := contador + 1;
+        IF contador >= alvo THEN
             contador := 0;
-            fase := 1;
+            fase := 2;
+        END_IF;
 
-        1:  // semeia vermelho
-            pulsoReg := TRUE;
-            dadoReg := TRUE;
-            contador := contador + 1;
-            IF contador >= alvo THEN
-                contador := 0;
-                fase := 2;
-            END_IF;
+    ELSIF fase = 5 THEN
+        resetReg := TRUE;
+        contador := 0;
+        fase := 6;
 
-        2: ; // patamar vermelho
-        3: ; // desloca vermelho
-        4: ; // amarelo
-
-        5:  // reset verde
-            resetReg := TRUE;
+    ELSIF fase = 6 THEN
+        pulsoReg := TRUE;
+        dadoReg := TRUE;
+        contador := contador + 1;
+        IF contador >= alvo THEN
             contador := 0;
-            fase := 6;
-
-        6:  // semeia verde
-            pulsoReg := TRUE;
-            dadoReg := TRUE;
-            contador := contador + 1;
-            IF contador >= alvo THEN
-                contador := 0;
-                fase := 7;
-            END_IF;
-
-        7: ; // patamar verde
-        8: ; // desloca verde
-        9: ; // amarelo
-
-    ELSE
-        fase := 0;
-    END_CASE;
+            fase := 7;
+        END_IF;
+    END_IF;
 
     IF fase = 2 THEN duracao := TempoVermelho;
     ELSIF fase = 7 THEN duracao := TempoVerde;

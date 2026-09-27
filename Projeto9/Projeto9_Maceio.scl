@@ -2,7 +2,5 @@
 ORGANIZATION_BLOCK OB1
 VAR_TEMP HEADER : ARRAY [1..20] OF BYTE; END_VAR
 BEGIN
-    FB108.DB108(Maceio := TRUE, TempoVermelho := T#30S,
-                TempoVerde := T#30S, TempoAmarelo := T#4S,
-                TempoDeslocamento := T#1S);
+    FB108.DB108(Maceio := TRUE);
 END_ORGANIZATION_BLOCK

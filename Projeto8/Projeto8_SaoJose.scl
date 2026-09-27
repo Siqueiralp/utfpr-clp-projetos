@@ -1,127 +1,119 @@
 // Requer FB107 do Projeto 7 ja compilado no mesmo S7 Program.
 FUNCTION_BLOCK FB108
-TITLE = 'Projetos 8 e 9 - semaforo de 13 lampadas minimo'
+TITLE = 'Projetos 8 e 9 - 13 lampadas sem timer'
 VAR_INPUT
     Maceio : BOOL;
-    TempoVermelho : S5TIME;
-    TempoVerde : S5TIME;
-    TempoAmarelo : S5TIME;
-    TempoDeslocamento : S5TIME;
 END_VAR
 VAR
     reg : FB107;
-    fase : INT := 0;              // reset/seed/hold/shift/yellow para cada cor
+    fase : INT := 0;
     contador : INT := 0;
-    armaTempo : BOOL := FALSE;
+    clockAnterior : BOOL := FALSE;
 END_VAR
 VAR_TEMP
     resetReg : BOOL;
     pulsoReg : BOOL;
     dadoReg : BOOL;
+    tick100ms : BOOL;
     alvo : INT;
-    limite : INT;
-    fimTempo : BOOL;
-    duracao : S5TIME;
-    restante : WORD;
-    resultado : S5TIME;
 END_VAR
 BEGIN
     resetReg := FALSE;
     pulsoReg := FALSE;
     dadoReg := FALSE;
 
-    IF Maceio THEN
-        alvo := 6;
-        limite := 6;
-    ELSE
-        alvo := 1;
-        limite := 5;
-    END_IF;
+    tick100ms := M10.0 AND NOT clockAnterior;
+    clockAnterior := M10.0;
 
-    // Fases 0..4 = vermelho; 5..9 = verde.
-    IF fase = 0 THEN
-        resetReg := TRUE;
-        contador := 0;
-        fase := 1;
+    IF Maceio THEN alvo := 6; ELSE alvo := 1; END_IF;
 
-    ELSIF fase = 1 THEN
-        pulsoReg := TRUE;
-        dadoReg := TRUE;
-        contador := contador + 1;
-        IF contador >= alvo THEN
+    CASE fase OF
+        0: // reset vermelho
+            resetReg := TRUE;
             contador := 0;
-            fase := 2;
-        END_IF;
+            fase := 1;
 
-    ELSIF fase = 5 THEN
-        resetReg := TRUE;
-        contador := 0;
-        fase := 6;
+        1: // semeia vermelho
+            pulsoReg := TRUE;
+            dadoReg := TRUE;
+            contador := contador + 1;
+            IF contador >= alvo THEN
+                contador := 0;
+                fase := 2;
+            END_IF;
 
-    ELSIF fase = 6 THEN
-        pulsoReg := TRUE;
-        dadoReg := TRUE;
-        contador := contador + 1;
-        IF contador >= alvo THEN
-            contador := 0;
-            fase := 7;
-        END_IF;
-    END_IF;
+        2: // vermelho 30 s
+            IF tick100ms THEN
+                contador := contador + 1;
+                IF contador >= 300 THEN contador := 0; fase := 3; END_IF;
+            END_IF;
 
-    IF fase = 2 THEN duracao := TempoVermelho;
-    ELSIF fase = 7 THEN duracao := TempoVerde;
-    ELSIF (fase = 4) OR (fase = 9) THEN duracao := TempoAmarelo;
-    ELSE duracao := TempoDeslocamento;
-    END_IF;
-
-    // Somente as fases temporizadas chamam T80.
-    IF (fase = 2) OR (fase = 3) OR (fase = 4) OR
-       (fase = 7) OR (fase = 8) OR (fase = 9) THEN
-
-        resultado := S_ODT(T_NO := T80, S := armaTempo,
-                           TV := duracao, R := FALSE,
-                           BI := restante, Q := fimTempo);
-
-        IF fimTempo THEN
-            armaTempo := FALSE;
-
-            CASE fase OF
-                2:
+        3, 4, 5, 6, 7, 8: // deslocamentos vermelhos de 1 s
+            IF tick100ms THEN
+                contador := contador + 1;
+                IF contador >= 10 THEN
                     contador := 0;
-                    fase := 3;
-
-                3:
                     pulsoReg := TRUE;
-                    contador := contador + 1;
-                    IF contador >= limite THEN
-                        contador := 0;
-                        fase := 4;
-                    END_IF;
-
-                4: fase := 5;
-
-                7:
-                    contador := 0;
-                    fase := 8;
-
-                8:
-                    pulsoReg := TRUE;
-                    contador := contador + 1;
-                    IF contador >= limite THEN
-                        contador := 0;
+                    IF (NOT Maceio AND (fase >= 7)) OR
+                       (Maceio AND (fase >= 8)) THEN
                         fase := 9;
+                    ELSE
+                        fase := fase + 1;
                     END_IF;
+                END_IF;
+            END_IF;
 
-                9: fase := 0;
-            END_CASE;
+        9: // amarelo 4 s
+            IF tick100ms THEN
+                contador := contador + 1;
+                IF contador >= 40 THEN contador := 0; fase := 10; END_IF;
+            END_IF;
 
-        ELSIF NOT armaTempo THEN
-            armaTempo := TRUE;
-        END_IF;
+        10: // reset verde
+            resetReg := TRUE;
+            contador := 0;
+            fase := 11;
+
+        11: // semeia verde
+            pulsoReg := TRUE;
+            dadoReg := TRUE;
+            contador := contador + 1;
+            IF contador >= alvo THEN
+                contador := 0;
+                fase := 12;
+            END_IF;
+
+        12: // verde 30 s
+            IF tick100ms THEN
+                contador := contador + 1;
+                IF contador >= 300 THEN contador := 0; fase := 13; END_IF;
+            END_IF;
+
+        13, 14, 15, 16, 17, 18: // deslocamentos verdes de 1 s
+            IF tick100ms THEN
+                contador := contador + 1;
+                IF contador >= 10 THEN
+                    contador := 0;
+                    pulsoReg := TRUE;
+                    IF (NOT Maceio AND (fase >= 17)) OR
+                       (Maceio AND (fase >= 18)) THEN
+                        fase := 19;
+                    ELSE
+                        fase := fase + 1;
+                    END_IF;
+                END_IF;
+            END_IF;
+
+        19: // amarelo 4 s
+            IF tick100ms THEN
+                contador := contador + 1;
+                IF contador >= 40 THEN contador := 0; fase := 0; END_IF;
+            END_IF;
 
     ELSE
-        armaTempo := FALSE;
-    END_IF;
+        fase := 0;
+        contador := 0;
+    END_CASE;
 
     reg(Forwardpulse := pulsoReg, Forwarddata := dadoReg,
         Backwardpulse := FALSE, Backwarddata := FALSE,
@@ -130,9 +122,9 @@ BEGIN
     QB0 := B#16#00;
     QB1 := B#16#00;
 
-    IF (fase >= 1) AND (fase <= 3) THEN
+    IF (fase >= 1) AND (fase <= 8) THEN
         QB0 := reg.Data AND B#16#3F;
-    ELSIF (fase >= 6) AND (fase <= 8) THEN
+    ELSIF (fase >= 11) AND (fase <= 18) THEN
         QB1 := reg.Data AND B#16#3F;
     ELSE
         QB0 := B#16#40;
@@ -142,7 +134,5 @@ END_FUNCTION_BLOCK
 ORGANIZATION_BLOCK OB1
 VAR_TEMP HEADER : ARRAY [1..20] OF BYTE; END_VAR
 BEGIN
-    FB108.DB108(Maceio := FALSE, TempoVermelho := T#30S,
-                TempoVerde := T#30S, TempoAmarelo := T#4S,
-                TempoDeslocamento := T#1S);
+    FB108.DB108(Maceio := FALSE);
 END_ORGANIZATION_BLOCK

@@ -11,20 +11,15 @@ END_VAR
 VAR
     reg : FB107;
     fase : INT := 0;
-    novoGrupo : BOOL := TRUE;
     pronto : BOOL := FALSE;
     alto : BOOL := FALSE;
-    semeados : INT := 0;
-    deslocados : INT := 0;
+    contador : INT := -1;         // -1=inicializa grupo; depois sementes/deslocamentos
     armaTempo : BOOL := FALSE;
 END_VAR
 VAR_TEMP
-    resetR : BOOL;
-    resetG : BOOL;
-    pulsoR : BOOL;
-    pulsoG : BOOL;
-    dadoR : BOOL;
-    dadoG : BOOL;
+    resetReg : BOOL;
+    pulsoReg : BOOL;
+    dadoReg : BOOL;
     alvo : INT;
     limite : INT;
     fimTempo : BOOL;
@@ -33,9 +28,9 @@ VAR_TEMP
     resultado : S5TIME;
 END_VAR
 BEGIN
-    resetR := FALSE; resetG := FALSE;
-    pulsoR := FALSE; pulsoG := FALSE;
-    dadoR := FALSE; dadoG := FALSE;
+    resetReg := FALSE;
+    pulsoReg := FALSE;
+    dadoReg := FALSE;
 
     IF Maceio THEN
         alvo := 6;
@@ -45,23 +40,25 @@ BEGIN
         limite := 5;
     END_IF;
 
-    // Prepara o registrador usando o mesmo FB107 do Projeto 7.
-    IF novoGrupo THEN
-        IF fase = 0 THEN resetR := TRUE; ELSE resetG := TRUE; END_IF;
-        semeados := 0;
-        deslocados := 0;
+    // Um unico registrador e um unico contador servem aos dois grupos.
+    IF contador < 0 THEN
+        resetReg := TRUE;
+        contador := 0;
         alto := FALSE;
         pronto := FALSE;
-        novoGrupo := FALSE;
+
     ELSIF ((fase = 0) OR (fase = 3)) AND NOT pronto THEN
         IF NOT alto THEN
             alto := TRUE;
-            semeados := semeados + 1;
-            IF fase = 0 THEN pulsoR := TRUE; dadoR := TRUE;
-            ELSE pulsoG := TRUE; dadoG := TRUE; END_IF;
+            contador := contador + 1;
+            pulsoReg := TRUE;
+            dadoReg := TRUE;
         ELSE
             alto := FALSE;
-            IF semeados >= alvo THEN pronto := TRUE; END_IF;
+            IF contador >= alvo THEN
+                pronto := TRUE;
+                contador := 0;
+            END_IF;
         END_IF;
     END_IF;
 
@@ -81,27 +78,27 @@ BEGIN
             CASE fase OF
                 0: fase := 1;
                 1:
-                    IF deslocados < limite THEN
-                        pulsoR := TRUE;
-                        deslocados := deslocados + 1;
+                    IF contador < limite THEN
+                        pulsoReg := TRUE;
+                        contador := contador + 1;
                     ELSE
                         fase := 2;
                     END_IF;
                 2:
                     fase := 3;
-                    novoGrupo := TRUE;
+                    contador := -1;
                     pronto := FALSE;
                 3: fase := 4;
                 4:
-                    IF deslocados < limite THEN
-                        pulsoG := TRUE;
-                        deslocados := deslocados + 1;
+                    IF contador < limite THEN
+                        pulsoReg := TRUE;
+                        contador := contador + 1;
                     ELSE
                         fase := 5;
                     END_IF;
                 5:
                     fase := 0;
-                    novoGrupo := TRUE;
+                    contador := -1;
                     pronto := FALSE;
             ELSE
                 fase := 0;
@@ -115,10 +112,9 @@ BEGIN
 
     IF (fase = 2) OR (fase = 5) THEN pronto := TRUE; END_IF;
 
-    reg(Forwardpulse := pulsoR OR pulsoG,
-        Forwarddata := dadoR OR dadoG,
+    reg(Forwardpulse := pulsoReg, Forwarddata := dadoReg,
         Backwardpulse := FALSE, Backwarddata := FALSE,
-        Reset := resetR OR resetG);
+        Reset := resetReg);
 
     // Escrita por BYTE substitui 13 atribuicoes BOOL por scan.
     QB0 := B#16#00;

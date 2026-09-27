@@ -15,7 +15,9 @@ fora da Symbol Table para evitar cadastro manual desnecessario, mantendo a
 estrutura LAD/GRAFCET explicita.
 
 Uma segunda revisao arquitetural aplicou estado compacto em SCL, registradores
-em `BYTE`, timers compartilhados e `OB35` deterministico no Projeto 10.
+em `BYTE`, timers compartilhados, Clock Memory em `MB10` para sinais periodicos
+e `OB35` deterministico no Projeto 10.
+Antes de simular, veja tambem [CONFIGURAR_CLOCK_MEMORY.txt](CONFIGURAR_CLOCK_MEMORY.txt).
 Veja [ARQUITETURA_PERFORMANCE.md](ARQUITETURA_PERFORMANCE.md) para as referencias
 e decisoes projeto a projeto.
 

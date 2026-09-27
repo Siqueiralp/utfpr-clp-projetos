@@ -22,6 +22,7 @@ VAR_TEMP
     horaAtual : INT;
     minutoAtual : INT;
     atualizaRelogio : BOOL;
+    fechaJanela : BOOL;
 
     valor1 : WORD;
     valor2 : WORD;
@@ -40,6 +41,8 @@ BEGIN
     atualizaRelogio := M10.7 AND NOT clockAnterior;
     clockAnterior := M10.7;
 
+    fechaJanela := FALSE;
+
     IF atualizaRelogio THEN
         retornoRelogio := SFC1(CDT := agora);
         IF retornoRelogio = 0 THEN
@@ -49,7 +52,7 @@ BEGIN
 
             // A mudanca de minuto fecha a janela de contagem de 60 s.
             IF (minutoAnterior >= 0) AND (minutoAtual <> minutoAnterior) THEN
-                zeraFluxo := TRUE;
+                fechaJanela := TRUE;
             END_IF;
             minutoAnterior := minutoAtual;
         END_IF;
@@ -60,10 +63,14 @@ BEGIN
     bcd2 := S_CU(C_NO := C52, CU := I0.2, S := FALSE, PV := 0,
                  R := zeraFluxo, CV := valor2, Q := ativo2);
 
-    IF zeraFluxo THEN
+    // zeraFluxo pertence a janela anterior; apos a chamada ele ja pode cair.
+    IF zeraFluxo THEN zeraFluxo := FALSE; END_IF;
+
+    // Captura primeiro; o reset dos contadores ocorre no scan seguinte.
+    IF fechaJanela THEN
         fluxo1 := WORD_TO_INT(valor1);
         fluxo2 := WORD_TO_INT(valor2);
-        zeraFluxo := FALSE;
+        zeraFluxo := TRUE;
     END_IF;
 
     IF I0.0 AND NOT botaoAnterior THEN pedido := TRUE; END_IF;

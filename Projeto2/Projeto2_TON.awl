@@ -115,113 +115,56 @@ TITLE = "Unico TON"
 NETWORK
 TITLE = "Rearma TON apos um scan em zero"
       AN    M      0.1;
-      A     T      0;
+      AN    T      0;
       S     M      0.1;
 
 NETWORK
-TITLE = "0 -> 1"
+TITLE = "9 -> 0"
       L     MW    20;
+      L     9;
+      ==I;
+      A     T      0;
+      JCN   T90;
       L     0;
-      ==I;
-      A     T      0;
-      JCN   T01;
-      L     1;
       T     MW    20;
       R     M      0.1;
-T01:  NOP   0;
+T90:  NOP   0;
 
 NETWORK
-TITLE = "1 -> 2 sem pedido"
+TITLE = "8 -> 9"
       L     MW    20;
-      L     1;
-      ==I;
-      A     T      0;
-      AN    M      0.0;
-      JCN   T12;
-      L     2;
-      T     MW    20;
-      R     M      0.1;
-T12:  NOP   0;
-
-NETWORK
-TITLE = "1 -> 6 com pedido"
-      L     MW    20;
-      L     1;
-      ==I;
-      A     T      0;
-      A     M      0.0;
-      JCN   T16;
-      L     6;
-      T     MW    20;
-      R     M      0.0;
-      R     M      0.1;
-T16:  NOP   0;
-
-NETWORK
-TITLE = "2 -> 3 sem pedido"
-      L     MW    20;
-      L     2;
-      ==I;
-      A     T      0;
-      AN    M      0.0;
-      JCN   T23;
-      L     3;
-      T     MW    20;
-      R     M      0.1;
-T23:  NOP   0;
-
-NETWORK
-TITLE = "2 -> 6 com pedido"
-      L     MW    20;
-      L     2;
-      ==I;
-      A     T      0;
-      A     M      0.0;
-      JCN   T26;
-      L     6;
-      T     MW    20;
-      R     M      0.0;
-      R     M      0.1;
-T26:  NOP   0;
-
-NETWORK
-TITLE = "3 -> 4"
-      L     MW    20;
-      L     3;
-      ==I;
-      A     T      0;
-      JCN   T34;
-      L     4;
-      T     MW    20;
-      R     M      0.1;
-T34:  NOP   0;
-
-NETWORK
-TITLE = "4 -> 5 sem pedido"
-      L     MW    20;
-      L     4;
-      ==I;
-      A     T      0;
-      AN    M      0.0;
-      JCN   T45;
-      L     5;
-      T     MW    20;
-      R     M      0.1;
-T45:  NOP   0;
-
-NETWORK
-TITLE = "4 -> 8 com pedido"
-      L     MW    20;
-      L     4;
-      ==I;
-      A     T      0;
-      A     M      0.0;
-      JCN   T48;
       L     8;
+      ==I;
+      A     T      0;
+      JCN   T89;
+      L     9;
       T     MW    20;
-      R     M      0.0;
       R     M      0.1;
-T48:  NOP   0;
+T89:  NOP   0;
+
+NETWORK
+TITLE = "7 -> 3"
+      L     MW    20;
+      L     7;
+      ==I;
+      A     T      0;
+      JCN   T73;
+      L     3;
+      T     MW    20;
+      R     M      0.1;
+T73:  NOP   0;
+
+NETWORK
+TITLE = "6 -> 7"
+      L     MW    20;
+      L     6;
+      ==I;
+      A     T      0;
+      JCN   T67;
+      L     7;
+      T     MW    20;
+      R     M      0.1;
+T67:  NOP   0;
 
 NETWORK
 TITLE = "5 -> 0 sem pedido"
@@ -251,52 +194,109 @@ TITLE = "5 -> 8 com pedido"
 T58:  NOP   0;
 
 NETWORK
-TITLE = "6 -> 7"
+TITLE = "4 -> 5 sem pedido"
       L     MW    20;
-      L     6;
+      L     4;
       ==I;
       A     T      0;
-      JCN   T67;
-      L     7;
+      AN    M      0.0;
+      JCN   T45;
+      L     5;
       T     MW    20;
       R     M      0.1;
-T67:  NOP   0;
+T45:  NOP   0;
 
 NETWORK
-TITLE = "7 -> 3"
+TITLE = "4 -> 8 com pedido"
       L     MW    20;
-      L     7;
+      L     4;
       ==I;
       A     T      0;
-      JCN   T73;
+      A     M      0.0;
+      JCN   T48;
+      L     8;
+      T     MW    20;
+      R     M      0.0;
+      R     M      0.1;
+T48:  NOP   0;
+
+NETWORK
+TITLE = "3 -> 4"
+      L     MW    20;
+      L     3;
+      ==I;
+      A     T      0;
+      JCN   T34;
+      L     4;
+      T     MW    20;
+      R     M      0.1;
+T34:  NOP   0;
+
+NETWORK
+TITLE = "2 -> 3 sem pedido"
+      L     MW    20;
+      L     2;
+      ==I;
+      A     T      0;
+      AN    M      0.0;
+      JCN   T23;
       L     3;
       T     MW    20;
       R     M      0.1;
-T73:  NOP   0;
+T23:  NOP   0;
 
 NETWORK
-TITLE = "8 -> 9"
+TITLE = "2 -> 6 com pedido"
       L     MW    20;
-      L     8;
+      L     2;
       ==I;
       A     T      0;
-      JCN   T89;
-      L     9;
+      A     M      0.0;
+      JCN   T26;
+      L     6;
+      T     MW    20;
+      R     M      0.0;
+      R     M      0.1;
+T26:  NOP   0;
+
+NETWORK
+TITLE = "1 -> 2 sem pedido"
+      L     MW    20;
+      L     1;
+      ==I;
+      A     T      0;
+      AN    M      0.0;
+      JCN   T12;
+      L     2;
       T     MW    20;
       R     M      0.1;
-T89:  NOP   0;
+T12:  NOP   0;
 
 NETWORK
-TITLE = "9 -> 0"
+TITLE = "1 -> 6 com pedido"
       L     MW    20;
-      L     9;
+      L     1;
       ==I;
       A     T      0;
-      JCN   T90;
+      A     M      0.0;
+      JCN   T16;
+      L     6;
+      T     MW    20;
+      R     M      0.0;
+      R     M      0.1;
+T16:  NOP   0;
+
+NETWORK
+TITLE = "0 -> 1"
+      L     MW    20;
       L     0;
+      ==I;
+      A     T      0;
+      JCN   T01;
+      L     1;
       T     MW    20;
       R     M      0.1;
-T90:  NOP   0;
+T01:  NOP   0;
 
 NETWORK
 TITLE = "Saida - Verde Via 1"
@@ -317,10 +317,11 @@ TITLE = "Saida - Vermelho Via 1"
       L     MW    20;
       L     3;
       <>I;
+      A(
       L     MW    20;
       L     4;
       <>I;
-      A;
+      );
       =     Q      0.2;
 
 NETWORK
@@ -342,10 +343,11 @@ TITLE = "Saida - Vermelho Via 2"
       L     MW    20;
       L     0;
       <>I;
+      A(
       L     MW    20;
       L     1;
       <>I;
-      A;
+      );
       =     Q      0.5;
 
 NETWORK

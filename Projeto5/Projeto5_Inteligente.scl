@@ -12,6 +12,8 @@ VAR
 
     hora : INT := 12;
     noiteAnterior : BOOL := FALSE;
+    relogioLido : BOOL := FALSE;
+    clockAnterior : BOOL := FALSE;
 
     armaJanela : BOOL := FALSE;
     zeraFluxo : BOOL := TRUE;
@@ -37,14 +39,23 @@ VAR_TEMP
     restante : WORD;
     resultado : S5TIME;
 
-    millis : DINT;
+    atualizaRelogio : BOOL;
     piscaAceso : BOOL;
 END_VAR
 BEGIN
-    retornoRelogio := SFC1(CDT := agora);
-    IF retornoRelogio = 0 THEN
-        hora := BCD_TO_INT(BYTE_TO_WORD(bytesAgora[3]));
+    // M10.7 tem periodo de 2 s quando MB10 e configurado como Clock Memory.
+    // Assim o RTC nao e lido em todos os scans.
+    atualizaRelogio := (M10.7 AND NOT clockAnterior) OR NOT relogioLido;
+    clockAnterior := M10.7;
+
+    IF atualizaRelogio THEN
+        retornoRelogio := SFC1(CDT := agora);
+        IF retornoRelogio = 0 THEN
+            hora := BCD_TO_INT(BYTE_TO_WORD(bytesAgora[3]));
+            relogioLido := TRUE;
+        END_IF;
     END_IF;
+
     noite := (hora >= 22) OR (hora < 6);
 
     // Contadores dedicados preservam os pulsos de trafego sem criar flags extras.
@@ -155,11 +166,10 @@ BEGIN
         END_IF;
     END_IF;
 
-    // Pisca visual derivado do relogio do sistema: elimina um terceiro timer.
+    // M10.5 tem periodo de 1 s: 500 ms ligado / 500 ms desligado.
     piscaAceso := TRUE;
     IF noite OR (etapa = 7) THEN
-        millis := TIME_TO_DINT(SFC64());
-        piscaAceso := (millis MOD 1000) < 500;
+        piscaAceso := M10.5;
     END_IF;
 
     IF noite THEN

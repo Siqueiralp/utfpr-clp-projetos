@@ -1,101 +1,27 @@
-PROJETO 1 - SEMAFORO INTUITIVO COM TOF
-========================================
+PROJETO 1 - SEMAFORO COM TOF MINIMO
+====================================
 
-Alvo usado
-----------
-CPU: CPU314C-2 DP
-Order No.: 6ES7 314-6CG03-0AB0
-MPI: 2
-Software: SIMATIC Manager / STEP 7 Classic
-OB principal: OB1
-Linguagem de visualizacao desejada: LAD
+A fonte usa apenas um temporizador: T0.
 
-Arquivos
---------
-1. Projeto1_TOF.awl
-   Fonte STL/AWL externa. Ao compilar, gera/substitui o OB1.
+Recursos internos:
+- MW20: estado 0..9;
+- MW22: preset do estado;
+- M0.0: pedido;
+- M0.1: pulso do TOF;
+- M0.2: memoria FP da botoeira;
+- M0.3: inicializacao;
+- T0: unico TOF;
+- M10.5: pisca do pedestre.
 
-2. Projeto1_Symbols.sdf
-   Tabela minima de simbolos: somente I0.0 e Q0.0..Q0.7.
+A Symbol Table possui somente I0.0 e Q0.0..Q0.7.
 
-3. MAPA_LOGICA.txt
-   Mapa dos enderecos internos M/T, sem necessidade de cadastra-los em Symbols.
+Importacao:
+1. configure MB10 como Clock Memory;
+2. importe Projeto1_Symbols.sdf;
+3. importe Projeto1_TOF.awl em Sources;
+4. compile;
+5. abra OB1 e verifique a representacao no editor LAD/STL/FBD;
+6. faca MRES antes do primeiro teste.
 
-IMPORTAR A TABELA DE SIMBOLOS
------------------------------
-1. Abra S7 Program -> Symbols.
-2. Use Table -> Import.
-3. Selecione Projeto1_Symbols.sdf no formato SDF.
-4. O arquivo possui apenas 9 linhas: 1 entrada e 8 saidas.
-
-Os bits M e timers T foram deliberadamente removidos da tabela de simbolos.
-A fonte os referencia diretamente por endereco. Isso reduz drasticamente o
-trabalho manual no Symbol Editor sem alterar a logica.
-
-IMPORTAR A LOGICA
------------------
-1. No SIMATIC Manager, expanda S7 Program.
-2. Abra Sources.
-3. Insert -> External Source File.
-4. Selecione Projeto1_TOF.awl.
-5. Clique com o botao direito na fonte -> Compile.
-6. Abra o OB1 gerado.
-7. Use View -> LAD.
-
-A revisao 0.2 mantem redes booleanas simples e evita saltos/enderecamento
-indireto para preservar a visualizacao em Ladder.
-
-RECURSOS INTERNOS
------------------
-Os tempos repetidos compartilham timers:
-T0 = 30 s, T1 = 4 s, T2 = 2 s, T3 = 15 s e T4 = 5 s.
-
-Portanto o Projeto 1 usa 5 timers, nao 10. O pisca de 500 ms usa M10.5.
-Antes de testar, configure MB10 como Clock Memory nas propriedades da CPU.
-Consulte ../CONFIGURAR_CLOCK_MEMORY.txt e MAPA_LOGICA.txt.
-
-IMPORTANTE SOBRE MNEMONICS
---------------------------
-A fonte usa mnemonicos em INGLES/INTERNATIONAL:
-A, AN, O, S, R, FP e SF.
-
-Se o compilador reclamar especificamente de SF, verifique:
-Options -> Customize -> Language / Mnemonics -> English (International).
-
-No conjunto alemao, o OFF-delay pode aparecer como SA em vez de SF.
-
-ANTES DO PRIMEIRO TESTE
------------------------
-Faca MRES antes do primeiro RUN. A inicializacao usa M0.7 e parte da Etapa 1.
-
-TESTE BASICO SEM PEDESTRE
--------------------------
-Com I0.0 = 0:
-
-30 s  -> V1 vermelho / V2 verde
-4 s   -> V1 vermelho / V2 amarelo
-2 s   -> ambas vermelhas
-30 s  -> V1 verde / V2 vermelho
-4 s   -> V1 amarelo / V2 vermelho
-2 s   -> ambas vermelhas
-repete
-
-TESTE DO PEDESTRE
------------------
-1. Durante o ciclo, de um pulso em I0.0.
-2. M0.6 memoriza o pedido (nao precisa existir na Symbol Table).
-3. O pedido e atendido em uma transicao segura.
-4. Q0.6 fica verde por 15 s.
-5. Depois Q0.7 pisca por 5 s seguindo M10.5 (500 ms ON / 500 ms OFF).
-6. Ao terminar, abre a via que estava fechada antes da chamada.
-
-OBSERVACAO SOBRE HARDWARE REAL
-------------------------------
-Confira no HW Config se Q0.0..Q0.7 correspondem as saidas da bancada.
-
-LIMITACAO DE VALIDACAO
-----------------------
-A tentativa local de 27/09/2026 foi feita sobre a versao anterior da fonte e
-ficou inconclusiva por problema no editor LAD/STL/FBD. A revisao 0.2 atual
-ainda precisa ser compilada no STEP 7 e executada no PLCSIM antes de ser
-considerada validada.
+O ciclo continua 30 / 4 / 2 / 30 / 4 / 2 s, com pedestre 15 + 5 s.
+A implementacao atual ainda precisa ser compilada e testada no STEP 7/PLCSIM.

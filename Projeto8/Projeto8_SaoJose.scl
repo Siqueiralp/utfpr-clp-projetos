@@ -54,9 +54,9 @@ BEGIN
                 fase := 2;
             END_IF;
 
-        2: duracao := TempoVermelho;       // patamar vermelho
-        3: duracao := TempoDeslocamento;   // desloca vermelho
-        4: duracao := TempoAmarelo;
+        2: ; // patamar vermelho
+        3: ; // desloca vermelho
+        4: ; // amarelo
 
         5:  // reset verde
             resetReg := TRUE;
@@ -72,13 +72,19 @@ BEGIN
                 fase := 7;
             END_IF;
 
-        7: duracao := TempoVerde;          // patamar verde
-        8: duracao := TempoDeslocamento;   // desloca verde
-        9: duracao := TempoAmarelo;
+        7: ; // patamar verde
+        8: ; // desloca verde
+        9: ; // amarelo
 
     ELSE
         fase := 0;
     END_CASE;
+
+    IF fase = 2 THEN duracao := TempoVermelho;
+    ELSIF fase = 7 THEN duracao := TempoVerde;
+    ELSIF (fase = 4) OR (fase = 9) THEN duracao := TempoAmarelo;
+    ELSE duracao := TempoDeslocamento;
+    END_IF;
 
     // Somente as fases temporizadas chamam T80.
     IF (fase = 2) OR (fase = 3) OR (fase = 4) OR

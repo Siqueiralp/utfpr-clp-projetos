@@ -1,6 +1,6 @@
 ORGANIZATION_BLOCK OB 1
-TITLE = "Projeto 13 - GRAFCET LAD passo a passo simplificado"
-VERSION : 0.2
+TITLE = "Projeto 13 - GRAFCET LAD passo a passo com um TON"
+VERSION : 0.3
 
 VAR_TEMP
   OB1_EV_CLASS : BYTE ;
@@ -18,10 +18,11 @@ END_VAR
 BEGIN
 
 NETWORK
-TITLE = "Inicializacao"
+TITLE = "Inicializacao - ativa Passo 1"
       AN    M      0.7;
       S     M      0.0;
       S     M      0.7;
+      S     M      2.0;
 
 NETWORK
 TITLE = "Memoriza pedido de pedestre"
@@ -30,147 +31,182 @@ TITLE = "Memoriza pedido de pedestre"
       S     M      0.6;
 
 NETWORK
-TITLE = "TON compartilhado 30 s - etapas 1 e 4"
+TITLE = "Preset 30 s"
       A     M      0.0;
       O     M      0.3;
+      JCN   P30;
       L     S5T#30S;
+      T     MW    20;
+P30:  NOP   0;
+
+NETWORK
+TITLE = "Preset 4 s"
+      A     M      0.1;
+      O     M      0.4;
+      JCN   P04;
+      L     S5T#4S;
+      T     MW    20;
+P04:  NOP   0;
+
+NETWORK
+TITLE = "Preset 2 s"
+      A     M      0.2;
+      O     M      0.5;
+      JCN   P02;
+      L     S5T#2S;
+      T     MW    20;
+P02:  NOP   0;
+
+NETWORK
+TITLE = "Preset 15 s"
+      A     M      1.0;
+      JCN   P15;
+      L     S5T#15S;
+      T     MW    20;
+P15:  NOP   0;
+
+NETWORK
+TITLE = "Preset 5 s"
+      A     M      1.1;
+      JCN   P05;
+      L     S5T#5S;
+      T     MW    20;
+P05:  NOP   0;
+
+NETWORK
+TITLE = "Unico TON"
+      A     M      2.0;
+      L     MW    20;
       SD    T      0;
 
 NETWORK
-TITLE = "TON compartilhado 4 s - etapas 2 e 5"
-      A     M      0.1;
-      O     M      0.4;
-      L     S5T#4S;
-      SD    T      1;
+TITLE = "Rearma TON apos um scan em zero"
+      AN    M      2.0;
+      AN    T      0;
+      S     M      2.0;
 
 NETWORK
-TITLE = "TON compartilhado 2 s - etapas 3 e 6"
-      A     M      0.2;
-      O     M      0.5;
-      L     S5T#2S;
-      SD    T      2;
-
-NETWORK
-TITLE = "TON 15 s - pedestre verde"
-      A     M      1.0;
-      L     S5T#15S;
-      SD    T      3;
-
-NETWORK
-TITLE = "TON 5 s - pedestre piscante"
+TITLE = "Pedestre P2 -> Passo 4"
       A     M      1.1;
-      L     S5T#5S;
-      SD    T      4;
-
-NETWORK
-TITLE = "Passo 1 para Passo 2"
-      A     M      0.0;
       A     T      0;
-      S     M      0.1;
-      R     M      0.0;
-
-NETWORK
-TITLE = "Passo 2 para Passo 3"
-      A     M      0.1;
-      A     T      1;
-      AN    M      0.6;
-      S     M      0.2;
-      R     M      0.1;
-
-NETWORK
-TITLE = "Passo 2 para pedestre"
-      A     M      0.1;
-      A     T      1;
-      A     M      0.6;
-      S     M      1.0;
-      S     M      1.2;
-      R     M      0.6;
-      R     M      0.1;
-
-NETWORK
-TITLE = "Passo 3 para Passo 4"
-      A     M      0.2;
-      A     T      2;
-      AN    M      0.6;
-      S     M      0.3;
-      R     M      0.2;
-
-NETWORK
-TITLE = "Passo 3 para pedestre"
-      A     M      0.2;
-      A     T      2;
-      A     M      0.6;
-      S     M      1.0;
-      S     M      1.2;
-      R     M      0.6;
-      R     M      0.2;
-
-NETWORK
-TITLE = "Passo 4 para Passo 5"
-      A     M      0.3;
-      A     T      0;
-      S     M      0.4;
-      R     M      0.3;
-
-NETWORK
-TITLE = "Passo 5 para Passo 6"
-      A     M      0.4;
-      A     T      1;
-      AN    M      0.6;
-      S     M      0.5;
-      R     M      0.4;
-
-NETWORK
-TITLE = "Passo 5 para pedestre"
-      A     M      0.4;
-      A     T      1;
-      A     M      0.6;
-      S     M      1.0;
-      R     M      1.2;
-      R     M      0.6;
-      R     M      0.4;
-
-NETWORK
-TITLE = "Passo 6 para Passo 1"
-      A     M      0.5;
-      A     T      2;
-      AN    M      0.6;
-      S     M      0.0;
-      R     M      0.5;
-
-NETWORK
-TITLE = "Passo 6 para pedestre"
-      A     M      0.5;
-      A     T      2;
-      A     M      0.6;
-      S     M      1.0;
-      R     M      1.2;
-      R     M      0.6;
-      R     M      0.5;
-
-NETWORK
-TITLE = "Pedestre verde para piscante"
-      A     M      1.0;
-      A     T      3;
-      S     M      1.1;
-      R     M      1.0;
-
-NETWORK
-TITLE = "Fim pedestre - retoma Via 1"
-      A     M      1.1;
-      A     T      4;
       A     M      1.2;
       S     M      0.3;
       R     M      1.1;
       R     M      1.2;
+      R     M      2.0;
 
 NETWORK
-TITLE = "Fim pedestre - retoma Via 2"
+TITLE = "Pedestre P2 -> Passo 1"
       A     M      1.1;
-      A     T      4;
+      A     T      0;
       AN    M      1.2;
       S     M      0.0;
       R     M      1.1;
+      R     M      2.0;
+
+NETWORK
+TITLE = "Pedestre P1 -> P2"
+      A     M      1.0;
+      A     T      0;
+      S     M      1.1;
+      R     M      1.0;
+      R     M      2.0;
+
+NETWORK
+TITLE = "Passo 6 -> Passo 1 sem pedido"
+      A     M      0.5;
+      A     T      0;
+      AN    M      0.6;
+      S     M      0.0;
+      R     M      0.5;
+      R     M      2.0;
+
+NETWORK
+TITLE = "Passo 6 -> Pedestre com pedido"
+      A     M      0.5;
+      A     T      0;
+      A     M      0.6;
+      S     M      1.0;
+      R     M      1.2;
+      R     M      0.6;
+      R     M      0.5;
+      R     M      2.0;
+
+NETWORK
+TITLE = "Passo 5 -> Passo 6 sem pedido"
+      A     M      0.4;
+      A     T      0;
+      AN    M      0.6;
+      S     M      0.5;
+      R     M      0.4;
+      R     M      2.0;
+
+NETWORK
+TITLE = "Passo 5 -> Pedestre com pedido"
+      A     M      0.4;
+      A     T      0;
+      A     M      0.6;
+      S     M      1.0;
+      R     M      1.2;
+      R     M      0.6;
+      R     M      0.4;
+      R     M      2.0;
+
+NETWORK
+TITLE = "Passo 4 -> Passo 5"
+      A     M      0.3;
+      A     T      0;
+      S     M      0.4;
+      R     M      0.3;
+      R     M      2.0;
+
+NETWORK
+TITLE = "Passo 3 -> Passo 4 sem pedido"
+      A     M      0.2;
+      A     T      0;
+      AN    M      0.6;
+      S     M      0.3;
+      R     M      0.2;
+      R     M      2.0;
+
+NETWORK
+TITLE = "Passo 3 -> Pedestre com pedido"
+      A     M      0.2;
+      A     T      0;
+      A     M      0.6;
+      S     M      1.0;
+      S     M      1.2;
+      R     M      0.6;
+      R     M      0.2;
+      R     M      2.0;
+
+NETWORK
+TITLE = "Passo 2 -> Passo 3 sem pedido"
+      A     M      0.1;
+      A     T      0;
+      AN    M      0.6;
+      S     M      0.2;
+      R     M      0.1;
+      R     M      2.0;
+
+NETWORK
+TITLE = "Passo 2 -> Pedestre com pedido"
+      A     M      0.1;
+      A     T      0;
+      A     M      0.6;
+      S     M      1.0;
+      S     M      1.2;
+      R     M      0.6;
+      R     M      0.1;
+      R     M      2.0;
+
+NETWORK
+TITLE = "Passo 1 -> Passo 2"
+      A     M      0.0;
+      A     T      0;
+      S     M      0.1;
+      R     M      0.0;
+      R     M      2.0;
 
 NETWORK
 TITLE = "Saida - Verde Via 1"
@@ -218,7 +254,7 @@ TITLE = "Saida - Verde Pedestre"
       =     Q      0.6;
 
 NETWORK
-TITLE = "Saida - Vermelho Pedestre com Clock Memory 1 Hz"
+TITLE = "Saida - Vermelho Pedestre"
       A     M      1.1;
       A     M     10.5;
       O;

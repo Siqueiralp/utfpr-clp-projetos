@@ -16,36 +16,47 @@ Arquivos
    Fonte STL/AWL externa. Ao compilar, gera/substitui o OB1.
 
 2. Projeto1_Symbols.sdf
-   Tabela de simbolos em System Data Format (SDF).
+   Tabela minima de simbolos: somente I0.0 e Q0.0..Q0.7.
 
 3. MAPA_LOGICA.txt
-   Resumo das etapas, enderecos e comportamento esperado.
+   Mapa dos enderecos internos M/T, sem necessidade de cadastra-los em Symbols.
 
 IMPORTAR A TABELA DE SIMBOLOS
 -----------------------------
 1. Abra S7 Program -> Symbols.
-2. No Symbol Editor, use Table -> Import (ou menu equivalente da sua versao).
-3. Selecione Projeto1_Symbols.sdf.
-4. Formato: SDF.
-5. Se houver pergunta sobre sobrescrever simbolos existentes, NAO e necessario
-   importar novamente o simbolo "Cycle Execution"; este arquivo nao o inclui.
+2. Use Table -> Import.
+3. Selecione Projeto1_Symbols.sdf no formato SDF.
+4. O arquivo possui apenas 9 linhas: 1 entrada e 8 saidas.
+
+Os bits M e timers T foram deliberadamente removidos da tabela de simbolos.
+A fonte os referencia diretamente por endereco. Isso reduz drasticamente o
+trabalho manual no Symbol Editor sem alterar a logica.
 
 IMPORTAR A LOGICA
 -----------------
 1. No SIMATIC Manager, expanda S7 Program.
-2. Abra a pasta Sources.
-3. Menu Insert -> External Source File.
+2. Abra Sources.
+3. Insert -> External Source File.
 4. Selecione Projeto1_TOF.awl.
-5. O arquivo aparecera em Sources.
-6. Clique com o botao direito na fonte -> Compile.
-7. O OB1 gerado aparecera em Blocks.
-8. Abra OB1.
-9. Tente View -> LAD para visualizar os Networks em Ladder.
+5. Clique com o botao direito na fonte -> Compile.
+6. Abra o OB1 gerado.
+7. Use View -> LAD.
+
+A revisao 0.2 mantem redes booleanas simples e evita saltos/enderecamento
+indireto para preservar a visualizacao em Ladder.
+
+RECURSOS INTERNOS
+-----------------
+Os tempos repetidos compartilham timers:
+T0 = 30 s, T1 = 4 s, T2 = 2 s, T3 = 15 s, T4 = 5 s e T5 = 500 ms.
+
+Portanto o Projeto 1 usa 6 timers, nao 10. Consulte MAPA_LOGICA.txt para os
+poucos bits M internos restantes.
 
 IMPORTANTE SOBRE MNEMONICS
 --------------------------
 A fonte usa mnemonicos em INGLES/INTERNATIONAL:
-A, AN, O, S, R, FP e SF.
+A, AN, O, S, R, FP, SET e SF.
 
 Se o compilador reclamar especificamente de SF, verifique:
 Options -> Customize -> Language / Mnemonics -> English (International).
@@ -54,13 +65,11 @@ No conjunto alemao, o OFF-delay pode aparecer como SA em vez de SF.
 
 ANTES DO PRIMEIRO TESTE
 -----------------------
-Como a inicializacao usa M0.7 (Inicializado), inicie o PLCSIM com memoria limpa
-ou faca MRES antes do primeiro RUN. Assim M0.7 comeca em zero e Etapa_1 e
-ativada corretamente.
+Faca MRES antes do primeiro RUN. A inicializacao usa M0.7 e parte da Etapa 1.
 
 TESTE BASICO SEM PEDESTRE
 -------------------------
-Com I0.0 = 0, a sequencia esperada e:
+Com I0.0 = 0:
 
 30 s  -> V1 vermelho / V2 verde
 4 s   -> V1 vermelho / V2 amarelo
@@ -72,23 +81,20 @@ repete
 
 TESTE DO PEDESTRE
 -----------------
-1. Durante verde ou amarelo de uma via, de um pulso em I0.0.
-2. M0.6 (Pedestre_Pendente) deve memorizar o pedido.
-3. O pedido so e atendido em uma transicao segura depois do amarelo.
-4. Durante a travessia:
-   - Q0.6 verde pedestre: 15 s
-   - depois Q0.7 vermelho pedestre pisca por 5 s
-5. Ao terminar, fica verde a via que estava vermelha antes da chamada.
+1. Durante o ciclo, de um pulso em I0.0.
+2. M0.6 memoriza o pedido (nao precisa existir na Symbol Table).
+3. O pedido e atendido em uma transicao segura.
+4. Q0.6 fica verde por 15 s.
+5. Depois Q0.7 pisca por 5 s, alternando a cada 500 ms.
+6. Ao terminar, abre a via que estava fechada antes da chamada.
 
 OBSERVACAO SOBRE HARDWARE REAL
 ------------------------------
-Os enderecos Q0.0...Q0.7 foram escolhidos para o projeto/simulacao.
-Antes de baixar no CLP fisico do laboratorio, confira no HW Config se as
-saidas usadas pela bancada realmente estao mapeadas nesse byte.
+Confira no HW Config se Q0.0..Q0.7 correspondem as saidas da bancada.
 
 LIMITACAO DE VALIDACAO
 ----------------------
-A fonte foi importada no STEP 7 Classic V5.7 em 27/09/2026. A tentativa de
-compilacao foi inconclusiva: o editor LAD/STL/FBD abriu vazio inclusive para
-o OB1 inicial criado pelo assistente. Nao houve teste funcional no PLCSIM.
-Consulte VALIDACAO_LOCAL_2026-09-27.md para o procedimento e as observacoes.
+A tentativa local de 27/09/2026 foi feita sobre a versao anterior da fonte e
+ficou inconclusiva por problema no editor LAD/STL/FBD. A revisao 0.2 atual
+ainda precisa ser compilada no STEP 7 e executada no PLCSIM antes de ser
+considerada validada.

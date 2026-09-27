@@ -90,6 +90,20 @@ Fontes:
 https://support.industry.siemens.com/cs/attachments/109763709/109763709_SEL_STEP7_V15_LIB_V10_en.pdf
 https://support.industry.siemens.com/cs/attachments/68624711/68624711_sinamics_s120_pn_at_s7-300400f_docu_v2d0_en.pdf
 
+### Sequenciador nativo DRUM/DRUM_X
+
+A Siemens oferece DRUM/DRUM_X para S7-300/400 como sequenciador de ate 16
+passos, com mascara de saidas, OUT_WORD, eventos e avanco temporizado. Ele e
+uma alternativa interessante para maquinas lineares parametrizaveis.
+
+Nao foi usado como implementacao principal aqui porque substituiria os
+mecanismos que os enunciados pedem explicitamente demonstrar: TON, TOF,
+registrador de deslocamento e GRAFCET. Para uma aplicacao industrial sem essa
+restricao didatica, seria uma opcao valida a comparar com o sequenciador CASE.
+
+Referencia:
+https://docs.tia.siemens.cloud/r/en-us/v21/scl-s7-300-s7-400/additional-instructions-s7-300-s7-400/drum-implement-sequencer-s7-300-s7-400
+
 ### Exemplos publicos de sequenciadores
 
 Projetos Siemens/TIA publicos adotam maquinas de estado SCL com passo numerico,
@@ -134,6 +148,23 @@ performance real, nao apenas contagem de recursos.
 Fontes:
 https://support.industry.siemens.com/cs/attachments/13206730/s7300_instruction_list_en-US.pdf
 https://cache.industry.siemens.com/dl/files/056/18652056/att_70829/v1/S7prv54_e.pdf
+
+## Reducoes estruturais medidas contra a revisao anterior
+
+Estas contagens nao sao benchmark de CPU; sao reducoes objetivas de recursos
+e operacoes explicitas na fonte:
+
+| Projeto | Antes | Depois |
+| --- | --- | --- |
+| 1 | 6 timers, 16 bits M usados | 5 timers, 13 bits internos + M10.5 |
+| 2 | 6 timers, 14 bits M usados | 5 timers, 12 bits internos + M10.5 |
+| 3 | T30 + T31 | somente T30 + M10.5 |
+| 5 | T51 + T52 + T53 | T51 + T52 + M10.5 |
+| 6 | 1 TOF + chamada SFC64 para pisca | 1 TOF + M10.5 |
+| 7 | 8 BOOL de dados + 8 copias para Q | 1 BYTE + SHL/SHR + 1 copia QB0 |
+| 8/9 | atribuicoes individuais de Q0.x/Q1.x | escrita compacta de QB0/QB1 |
+| 10 | T100 criando tick de 100 ms | nenhum timer; OB35 a 100 ms |
+| 11 | T110..T117 + SFC64 | somente T110 + M10.5 |
 
 ## Por que nao transformar tudo em uma tabela generica
 

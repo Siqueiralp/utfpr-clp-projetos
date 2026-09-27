@@ -15,7 +15,7 @@ correspondente ao item de mesmo numero no enunciado da disciplina.
 | 7 | `Projeto7/Projeto7_Shift_Register_BIT.scl` | FB de deslocamento de 8 bits |
 | 8 | `Projeto8/Projeto8_SaoJose.scl` | 13 lampadas, bit 1 sequencial |
 | 9 | `Projeto9/Projeto9_Maceio.scl` | 13 lampadas, bit 0 sequencial |
-| 10 | `Projeto10/Projeto10_Motor.scl` | Quatro rampas e tres patamares |
+| 10 | `Projeto10/Projeto10_Motor.scl` | Quatro rampas e tres patamares em OB35 |
 | 11 | `Projeto11/Projeto11_Grafcet.scl` | Passos GRAFCET com ramificacao OU |
 | 12 | `Projeto12/Projeto12_CTUD.scl` | FB contador crescente/decrescente IEC |
 | 13 | `Projeto13/Projeto13_Grafcet_LAD.awl` | GRAFCET Ladder passo a passo |
@@ -39,7 +39,8 @@ tambem nao exigem uma tabela global de simbolos para essas variaveis.
 ## Como importar
 
 1. Crie um **S7 Program diferente para cada projeto**, pois cada fonte contem
-   o seu proprio `OB1`.
+   o seu proprio `OB1`. O Projeto 10 contem tambem `OB35` para a base de tempo
+   deterministica de 100 ms.
 2. Para `.awl`, use `Sources > Insert > External Source File`, compile e abra
    o `OB1` em LAD. Importe o `.sdf` apenas para os projetos 1, 2 e 13.
 3. Para `.scl`, adicione a fonte em `Sources` e compile no editor S7-SCL.
@@ -81,22 +82,35 @@ usando exatamente um timer conforme o requisito. O Projeto 4 gera pulsos de
 
 Projeto 5 mede `I0.1` e `I0.2` em janelas de 60 s e escolhe verde de
 20 s (<20 veiculos/min), 40 s (20 a 40) ou 60 s (>40). Entre 22:00 e 06:00,
-lido pelo relogio da CPU (`SFC1`), as duas amarelas piscam.
+lido pelo relogio da CPU (`SFC1`), as duas amarelas piscam. A revisao atual
+usa apenas dois timers: janela de fluxo e etapa; o pisca e derivado de `SFC64`.
 
 Projeto 7: `I0.0` pulso frente, `I0.1` dado frente, `I0.2` pulso tras,
-`I0.3` dado tras, `I0.4` reset; saidas `Q0.0..Q0.7`.
+`I0.3` dado tras, `I0.4` reset. O registrador interno e um unico `BYTE`,
+deslocado por `SHL/SHR`, e o `OB1` copia `DB107.Data` diretamente para `QB0`.
 
 Projetos 8 e 9: `Q0.0..Q0.5` sao 6 vermelhas, `Q0.6` e amarela,
 `Q1.0..Q1.5` sao 6 verdes. Os tempos sao parametros de `FB108.DB108`.
+Os grupos sao escritos em `QB0/QB1` e reutilizam o `BYTE` compactado do FB107.
 
-Projeto 10: `I0.0` inicia; `I0.1` para. O comando 0..4095 e espelhado em
-`MW100` e enviado a `PQW256`.
+Projeto 10: `I0.0` inicia; `I0.1` para. A rampa roda no `OB35`, que deve estar
+configurado para **100 ms** nas propriedades da CPU. Nao ha mais timer T100.
+O `OB1` apenas espelha `DB110.Command` em `MW100` e envia a `PQW256`.
+
+Projeto 11 preserva os oito passos GRAFCET e a ramificacao OU, mas todos os
+passos mutuamente exclusivos compartilham **um unico `T110`**.
 
 Projeto 12: `I0.0` CU, `I0.1` CD, `I0.2` reset, `I0.3` load, PV=10.
 `Q0.0` QU, `Q0.1` QD e `MW100` CV.
 
 Projeto 14: `I0.0` manual frente, `I0.1` manual reverso, `I0.2`
 retoma automatico, `I0.3` para. `Q0.0` frente e `Q0.1` reverso.
+
+## Revisao arquitetural
+
+Consulte [`ARQUITETURA_PERFORMANCE.md`](ARQUITETURA_PERFORMANCE.md) para a
+comparacao com padroes Siemens e implementacoes publicas, incluindo as decisoes
+de performance aplicadas a cada projeto.
 
 ## Limite de verificacao
 

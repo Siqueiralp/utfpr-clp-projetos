@@ -38,11 +38,9 @@ Controle interno
 M0.6  Pedido de pedestre pendente
 M0.7  Inicializacao
 M1.2  Retoma Via 1 apos o pedestre
-M1.3  Estado do pisca: 1=aceso, 0=apagado
 M2.0  Pulso comum de entrada de etapa para os TOF
-M2.1  Pulso de reinicio do TOF de 500 ms
 M2.2  Memoria da borda da botoeira
-M2.3  Evento de alternancia a cada 500 ms
+M10.5 Clock Memory 1 Hz: 500 ms ligado / 500 ms desligado
 
 Temporizadores TOF compartilhados
 ---------------------------------
@@ -51,9 +49,8 @@ T1   4 s     Etapas 2 e 5
 T2   2 s     Etapas 3 e 6
 T3  15 s     Verde do pedestre
 T4   5 s     Janela total do vermelho piscante
-T5 500 ms    Alternancia do pisca
 
-Total: 6 timers, em vez de um timer separado para cada etapa.
+Total: 5 timers. O pisca usa M10.5, sem timer adicional.
 
 Como o TOF e usado
 ------------------
@@ -62,8 +59,8 @@ recebe esse pulso. No scan seguinte M2.0 volta a 0 e a borda de descida inicia
 a temporizacao OFF-delay. Como etapas com a mesma duracao nunca estao ativas
 ao mesmo tempo, elas compartilham o mesmo timer sem conflito.
 
-O pisca usa a mesma ideia com M2.1 e T5. T4 mede os 5 s totais da fase,
-enquanto T5 alterna o unico bit M1.3 a cada 500 ms.
+T4 mede os 5 s totais da fase piscante. Dentro dessa janela, Q0.7 segue
+M10.5, bit de Clock Memory de 1 Hz gerado pela propria CPU.
 
 Pedestre
 --------

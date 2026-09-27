@@ -12,7 +12,6 @@ VAR_TEMP
     duracao : S5TIME;
     restante : WORD;
     resultado : S5TIME;
-    millis : DINT;
 END_VAR
 BEGIN
     IF I0.0 AND NOT botaoAnterior THEN pedido := TRUE; END_IF;
@@ -73,12 +72,8 @@ BEGIN
         4: QB0 := B#16#A2;      // V1 amarelo
         6: QB0 := B#16#64;      // pedestre verde
         7:
-            millis := TIME_TO_DINT(SFC64());
-            IF (millis MOD 1000) < 500 THEN
-                QB0 := B#16#A4;
-            ELSE
-                QB0 := B#16#24;
-            END_IF;
+            IF M10.5 THEN QB0 := B#16#A4;
+            ELSE QB0 := B#16#24; END_IF;
     ELSE
         QB0 := B#16#A4;
     END_CASE;

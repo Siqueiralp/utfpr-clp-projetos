@@ -2,79 +2,83 @@ FUNCTION_BLOCK FB103
 TITLE = 'Projeto 3 - semaforo por byte de estado'
 VAR
     etapa : INT := 0;              // 0..5 ciclo; 6 verde ped; 7 pisca ped
-    volta : INT := 3;
+    voltaVia1 : BOOL := TRUE;      // TRUE -> retoma etapa 3; FALSE -> etapa 0
     pedido : BOOL := FALSE;
     botaoAnterior : BOOL := FALSE;
     habilitaTempo : BOOL := FALSE;
-    fimTempo : BOOL := FALSE;
-    tempo : S5TIME;
-    habilitaPisca : BOOL := FALSE;
-    fimPisca : BOOL := FALSE;
-    piscaAceso : BOOL := TRUE;
+END_VAR
+VAR_TEMP
+    fimTempo : BOOL;
+    duracao : S5TIME;
     restante : WORD;
+    resultado : S5TIME;
+    millis : DINT;
 END_VAR
 BEGIN
     IF I0.0 AND NOT botaoAnterior THEN pedido := TRUE; END_IF;
     botaoAnterior := I0.0;
 
     CASE etapa OF
-        0, 3: tempo := T#30S;
-        1, 4: tempo := T#4S;
-        2, 5: tempo := T#2S;
-        6: tempo := T#15S;
-        7: tempo := T#5S;
+        0, 3: duracao := T#30S;
+        1, 4: duracao := T#4S;
+        2, 5: duracao := T#2S;
+        6: duracao := T#15S;
+        7: duracao := T#5S;
     ELSE
         etapa := 0;
-        tempo := T#30S;
+        duracao := T#30S;
     END_CASE;
 
-    tempo := S_ODT(T_NO := T30, S := habilitaTempo,
-                   TV := tempo, R := FALSE, BI := restante, Q := fimTempo);
+    resultado := S_ODT(T_NO := T30, S := habilitaTempo,
+                       TV := duracao, R := FALSE,
+                       BI := restante, Q := fimTempo);
+
     IF fimTempo THEN
         habilitaTempo := FALSE;
         CASE etapa OF
             0: etapa := 1;
-            1, 2: IF pedido THEN
-                      etapa := 6; volta := 3; pedido := FALSE;
-                  ELSE
-                      IF etapa = 1 THEN etapa := 2; ELSE etapa := 3; END_IF;
-                  END_IF;
+            1, 2:
+                IF pedido THEN
+                    etapa := 6;
+                    voltaVia1 := TRUE;
+                    pedido := FALSE;
+                ELSE
+                    IF etapa = 1 THEN etapa := 2; ELSE etapa := 3; END_IF;
+                END_IF;
             3: etapa := 4;
-            4, 5: IF pedido THEN
-                      etapa := 6; volta := 0; pedido := FALSE;
-                  ELSE
-                      IF etapa = 4 THEN etapa := 5; ELSE etapa := 0; END_IF;
-                  END_IF;
-            6: etapa := 7; piscaAceso := TRUE;
-            7: etapa := volta;
+            4, 5:
+                IF pedido THEN
+                    etapa := 6;
+                    voltaVia1 := FALSE;
+                    pedido := FALSE;
+                ELSE
+                    IF etapa = 4 THEN etapa := 5; ELSE etapa := 0; END_IF;
+                END_IF;
+            6: etapa := 7;
+            7:
+                IF voltaVia1 THEN etapa := 3; ELSE etapa := 0; END_IF;
+        ELSE
+            etapa := 0;
         END_CASE;
     ELSIF NOT habilitaTempo THEN
         habilitaTempo := TRUE;
     END_IF;
 
-    tempo := S_ODT(T_NO := T31, S := habilitaPisca AND (etapa = 7),
-                   TV := T#500MS, R := FALSE, Q := fimPisca);
-    IF etapa <> 7 THEN
-        habilitaPisca := FALSE;
-        piscaAceso := TRUE;
-    ELSIF fimPisca THEN
-        habilitaPisca := FALSE;
-        piscaAceso := NOT piscaAceso;
-    ELSIF NOT habilitaPisca THEN
-        habilitaPisca := TRUE;
-    END_IF;
-
-    // Q0: V1 verde, amarelo, vermelho; V2 verde, amarelo, vermelho;
-    //      pedestre verde, vermelho. Cada valor abaixo representa as 8 lampadas.
+    // Escrita atomica do byte de saidas: menos logica e menos variaveis.
     CASE etapa OF
-        0: QB0 := B#16#8C; // 140
-        1: QB0 := B#16#94; // 148
-        2, 5: QB0 := B#16#A4; // 164
-        3: QB0 := B#16#A1; // 161
-        4: QB0 := B#16#A2; // 162
-        6: QB0 := B#16#64; // 100
-        7: IF piscaAceso THEN QB0 := B#16#A4;
-           ELSE QB0 := B#16#24; END_IF;
+        0: QB0 := B#16#8C;      // V2 verde
+        1: QB0 := B#16#94;      // V2 amarelo
+        2, 5: QB0 := B#16#A4;   // ambas vermelhas
+        3: QB0 := B#16#A1;      // V1 verde
+        4: QB0 := B#16#A2;      // V1 amarelo
+        6: QB0 := B#16#64;      // pedestre verde
+        7:
+            millis := TIME_TO_DINT(SFC64());
+            IF (millis MOD 1000) < 500 THEN
+                QB0 := B#16#A4;
+            ELSE
+                QB0 := B#16#24;
+            END_IF;
     ELSE
         QB0 := B#16#A4;
     END_CASE;

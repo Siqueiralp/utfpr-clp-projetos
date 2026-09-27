@@ -1,6 +1,12 @@
 MAPA LOGICO - PROJETO 1
 ========================
 
+Objetivo da revisao
+-------------------
+A logica continua explicita em LAD, mas os recursos repetidos foram
+compartilhados. A tabela de simbolos contem somente a entrada e as 8 saidas.
+Os bits M e timers abaixo sao internos e podem permanecer por endereco.
+
 Entradas
 --------
 I0.0  Botao_Pedestre
@@ -16,63 +22,53 @@ Q0.5  Vermelho_Via2
 Q0.6  Verde_Pedestre
 Q0.7  Vermelho_Pedestre
 
-Estados normais
----------------
-M0.0  Etapa_1: V1 vermelho / V2 verde      30 s
-M0.1  Etapa_2: V1 vermelho / V2 amarelo     4 s
-M0.2  Etapa_3: ambas vermelhas               2 s
-M0.3  Etapa_4: V1 verde / V2 vermelho       30 s
-M0.4  Etapa_5: V1 amarelo / V2 vermelho      4 s
-M0.5  Etapa_6: ambas vermelhas               2 s
+Passos
+------
+M0.0  Etapa 1: V1 vermelho / V2 verde      30 s
+M0.1  Etapa 2: V1 vermelho / V2 amarelo     4 s
+M0.2  Etapa 3: ambas vermelhas               2 s
+M0.3  Etapa 4: V1 verde / V2 vermelho       30 s
+M0.4  Etapa 5: V1 amarelo / V2 vermelho      4 s
+M0.5  Etapa 6: ambas vermelhas               2 s
+M1.0  Pedestre verde                         15 s
+M1.1  Pedestre vermelho piscante             5 s
 
-Pedido de pedestre
+Controle interno
+----------------
+M0.6  Pedido de pedestre pendente
+M0.7  Inicializacao
+M1.2  Retoma Via 1 apos o pedestre
+M1.3  Metade ligada do pisca
+M1.4  Metade desligada do pisca
+M2.0  Pulso comum de entrada de etapa para os TOF
+M2.1  Pulso de reinicio do TOF de 500 ms
+M2.2  Memoria da borda da botoeira
+M2.3  Evento de troca ligado -> desligado
+M2.4  Evento de troca desligado -> ligado
+
+Temporizadores TOF compartilhados
+---------------------------------
+T0  30 s     Etapas 1 e 4
+T1   4 s     Etapas 2 e 5
+T2   2 s     Etapas 3 e 6
+T3  15 s     Verde do pedestre
+T4   5 s     Janela total do vermelho piscante
+T5 500 ms    Alternancia do pisca
+
+Total: 6 timers, em vez de um timer separado para cada etapa.
+
+Como o TOF e usado
 ------------------
-M0.6  Pedestre_Pendente
-M1.0  Ped_Verde
-M1.1  Ped_Pisca
-M1.2  Retoma_Via1
+M2.0 fica em 1 por um scan ao entrar em uma nova etapa. O TOF correspondente
+recebe esse pulso. No scan seguinte M2.0 volta a 0 e a borda de descida inicia
+a temporizacao OFF-delay. Como etapas com a mesma duracao nunca estao ativas
+ao mesmo tempo, elas compartilham o mesmo timer sem conflito.
 
-Temporizadores TOF
-------------------
-T0  30 s     Etapa_1
-T1   4 s     Etapa_2
-T2   2 s     Etapa_3
-T3  30 s     Etapa_4
-T4   4 s     Etapa_5
-T5   2 s     Etapa_6
-T6  15 s     Verde pedestre
-T7   5 s     Vermelho pedestre piscante
-T8 500 ms    Metade ligada do pisca
-T9 500 ms    Metade desligada do pisca
-
-Como o TOF gera uma duracao de etapa
-------------------------------------
-Cada estado passa por um detector de borda positiva (FP), produzindo um pulso
-de um scan. Esse pulso entra no temporizador OFF-delay.
-
-Scan de entrada da etapa:
-  FP = 1 -> Tn = 1
-
-Scan seguinte:
-  FP = 0 -> ocorre a borda negativa que inicia o TOF.
-
-Durante o tempo configurado:
-  Tn continua = 1.
-
-Ao terminar:
-  Tn = 0 -> a logica SET/RESET troca para a proxima etapa.
-
-Isso usa justamente o comportamento "invertido" do TOF exigido no projeto.
+O pisca usa a mesma ideia com M2.1 e T5. T4 mede os 5 s totais da fase,
+enquanto T5 apenas alterna M1.3/M1.4 a cada 500 ms.
 
 Pedestre
 --------
-O pulso da botoeira e detectado por FP M3.2 e memorizado em M0.6.
-Se o pedido existir ao terminar uma fase amarela, o ciclo entra na rotina
-de pedestre. Se a botoeira for pressionada durante a fase de ambas as vias
-vermelhas, o pedido tambem pode ser atendido ao fim dessa fase segura.
-
-Retoma_Via1 = 1:
-  depois do pedestre -> Etapa_4 -> Via 1 verde.
-
-Retoma_Via1 = 0:
-  depois do pedestre -> Etapa_1 -> Via 2 verde.
+Uma borda positiva de I0.0 grava o pedido em M0.6. O pedido e atendido ao
+terminar o amarelo ou a etapa segura de ambas as vias vermelhas. M1.2 registra
+qual lado deve ser retomado ao final da travessia.

@@ -193,30 +193,14 @@ TITLE = "Fim pedestre - retoma Via 2"
       R     M      2.0;
 
 NETWORK
-TITLE = "Detecta fim de 500 ms - fase ligada"
-      A     M      1.1;
-      A     T      5;
+TITLE = "Alterna estado do pisca"
       A     M      1.3;
-      =     M      2.2;
+      X     T      5;
+      =     M      1.3;
 
 NETWORK
-TITLE = "Detecta fim de 500 ms - fase desligada"
-      A     M      1.1;
+TITLE = "Reinicia TON de 500 ms"
       A     T      5;
-      A     M      1.4;
-      =     M      2.3;
-
-NETWORK
-TITLE = "Pisca: ligada para desligada"
-      A     M      2.2;
-      S     M      1.4;
-      R     M      1.3;
-      R     M      2.0;
-
-NETWORK
-TITLE = "Pisca: desligada para ligada"
-      A     M      2.3;
-      S     M      1.3;
       R     M      2.0;
 
 NETWORK

@@ -1,37 +1,27 @@
 CONFIGURACAO DO CLOCK MEMORY - MB10
 ===================================
 
-Os projetos que precisam de uma luz piscante usam o Clock Memory nativo da
-CPU em vez de executar um timer ou chamar SFC64 em todos os scans.
+Habilite o Clock Memory da CPU e configure o byte como MB10.
 
-No HW Config da CPU 314C-2 DP:
+Bits usados
+-----------
+M10.0  10 Hz    periodo 0,1 s   -> tick de 100 ms
+M10.5   1 Hz    periodo 1,0 s   -> 500 ms ON / 500 ms OFF
+M10.7 0,5 Hz    periodo 2,0 s   -> gatilho lento para leitura do RTC
 
-1. Abra Properties da CPU.
-2. Localize a configuracao de Clock Memory / Clock Memory Byte.
-3. Habilite Clock Memory.
-4. Defina o byte como MB10.
-5. Compile e carregue a configuracao de hardware junto com o programa.
+Uso por projeto
+---------------
+M10.0: Projetos 8, 9 e 10
+M10.5: Projetos 1, 2, 3, 5, 6, 11 e 13
+M10.7: Projeto 5
 
-Com MB10 configurado pela CPU:
+A CPU atualiza MB10 automaticamente. O programa nao deve escrever nesse byte.
 
-Bit     Periodo     Frequencia     Uso neste repositorio
-M10.5   1,0 s       1 Hz           pisca 500 ms ON / 500 ms OFF
-M10.7   2,0 s       0,5 Hz         gatilho lento para releitura do RTC no Projeto 5
+No HW Config:
+1. abra Properties da CPU;
+2. habilite Clock Memory;
+3. informe MB10;
+4. compile e carregue a configuracao de hardware.
 
-A CPU atualiza esses bits automaticamente. Eles NAO devem ser escritos pelo
-programa do usuario.
-
-Projetos que usam M10.5:
-- Projeto 1
-- Projeto 2
-- Projeto 3
-- Projeto 5
-- Projeto 6
-- Projeto 11
-- Projeto 13
-
-Projeto 5 tambem usa M10.7 para evitar chamar SFC1 em todos os scans.
-
-A configuracao de Clock Memory e parte do hardware do S7-300. Sem habilitar
-MB10, as fases principais continuam sequenciadas, mas as luzes que dependem
-do clock nao piscarao corretamente.
+Sem essa configuracao, os projetos que dependem desses pulsos nao terao a
+temporizacao periodica esperada.

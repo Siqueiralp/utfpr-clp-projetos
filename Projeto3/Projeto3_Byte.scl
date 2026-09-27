@@ -1,8 +1,7 @@
 FUNCTION_BLOCK FB103
-TITLE = 'Projeto 3 - semaforo por byte de estado'
+TITLE = 'Projeto 3 - semaforo por byte com estado compacto'
 VAR
-    etapa : INT := 0;              // 0..5 ciclo; 6 verde ped; 7 pisca ped
-    voltaVia1 : BOOL := TRUE;      // TRUE -> retoma etapa 3; FALSE -> etapa 0
+    etapa : INT := 0;              // 0..5 vias; 6/7 ped->via1; 8/9 ped->via2
     pedido : BOOL := FALSE;
     botaoAnterior : BOOL := FALSE;
     habilitaTempo : BOOL := FALSE;
@@ -21,8 +20,8 @@ BEGIN
         0, 3: duracao := T#30S;
         1, 4: duracao := T#4S;
         2, 5: duracao := T#2S;
-        6: duracao := T#15S;
-        7: duracao := T#5S;
+        6, 8: duracao := T#15S;
+        7, 9: duracao := T#5S;
     ELSE
         etapa := 0;
         duracao := T#30S;
@@ -36,26 +35,23 @@ BEGIN
         habilitaTempo := FALSE;
         CASE etapa OF
             0: etapa := 1;
-            1, 2:
-                IF pedido THEN
-                    etapa := 6;
-                    voltaVia1 := TRUE;
-                    pedido := FALSE;
-                ELSE
-                    IF etapa = 1 THEN etapa := 2; ELSE etapa := 3; END_IF;
-                END_IF;
+            1:
+                IF pedido THEN etapa := 6; pedido := FALSE;
+                ELSE etapa := 2; END_IF;
+            2:
+                IF pedido THEN etapa := 6; pedido := FALSE;
+                ELSE etapa := 3; END_IF;
             3: etapa := 4;
-            4, 5:
-                IF pedido THEN
-                    etapa := 6;
-                    voltaVia1 := FALSE;
-                    pedido := FALSE;
-                ELSE
-                    IF etapa = 4 THEN etapa := 5; ELSE etapa := 0; END_IF;
-                END_IF;
+            4:
+                IF pedido THEN etapa := 8; pedido := FALSE;
+                ELSE etapa := 5; END_IF;
+            5:
+                IF pedido THEN etapa := 8; pedido := FALSE;
+                ELSE etapa := 0; END_IF;
             6: etapa := 7;
-            7:
-                IF voltaVia1 THEN etapa := 3; ELSE etapa := 0; END_IF;
+            7: etapa := 3;
+            8: etapa := 9;
+            9: etapa := 0;
         ELSE
             etapa := 0;
         END_CASE;
@@ -63,15 +59,14 @@ BEGIN
         habilitaTempo := TRUE;
     END_IF;
 
-    // Escrita atomica do byte de saidas: menos logica e menos variaveis.
     CASE etapa OF
-        0: QB0 := B#16#8C;      // V2 verde
-        1: QB0 := B#16#94;      // V2 amarelo
-        2, 5: QB0 := B#16#A4;   // ambas vermelhas
-        3: QB0 := B#16#A1;      // V1 verde
-        4: QB0 := B#16#A2;      // V1 amarelo
-        6: QB0 := B#16#64;      // pedestre verde
-        7:
+        0: QB0 := B#16#8C;
+        1: QB0 := B#16#94;
+        2, 5: QB0 := B#16#A4;
+        3: QB0 := B#16#A1;
+        4: QB0 := B#16#A2;
+        6, 8: QB0 := B#16#64;
+        7, 9:
             IF M10.5 THEN QB0 := B#16#A4;
             ELSE QB0 := B#16#24; END_IF;
     ELSE

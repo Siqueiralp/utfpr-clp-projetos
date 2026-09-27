@@ -31,7 +31,6 @@ T1   4 s     Passos 2 e 5
 T2   2 s     Passos 3 e 6
 T3  15 s     Pedestre verde
 T4   5 s     Pedestre piscante
-T5 500 ms    Alternancia do pisca
 
-Total: 6 TON. A reducao nao altera os passos do GRAFCET; apenas evita
-duplicar timers que nunca seriam usados simultaneamente.
+Total: 5 TON. O pisca de 500 ms usa M10.5 (Clock Memory 1 Hz). A reducao nao
+altera os passos do GRAFCET e evita timers/flags que nao representam passos.

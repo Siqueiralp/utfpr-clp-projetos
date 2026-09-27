@@ -1,36 +1,23 @@
-PROJETO 13 - GRAFCET LAD, METODO PASSO A PASSO
+PROJETO 13 - GRAFCET LAD PASSO A PASSO MINIMO
 
-A implementacao continua explicitamente passo a passo em Ladder. Cada passo
-e um bit de memoria; nao foi substituido por uma maquina de estados inteira,
-pois isso esconderia a estrutura do GRAFCET.
+Este projeto e a excecao em que os bits de passo sao preservados porque eles
+fazem parte do metodo GRAFCET Ladder passo a passo.
 
-Passo 1  M0.0  V1 vermelho, V2 verde             30 s
-Passo 2  M0.1  V1 vermelho, V2 amarelo            4 s
-Passo 3  M0.2  V1 vermelho, V2 vermelho           2 s
-Passo 4  M0.3  V1 verde, V2 vermelho             30 s
-Passo 5  M0.4  V1 amarelo, V2 vermelho            4 s
-Passo 6  M0.5  V1 vermelho, V2 vermelho           2 s
-Passo P1 M1.0  Veiculos vermelhos, ped verde     15 s
-Passo P2 M1.1  Veiculos vermelhos, ped pisca      5 s
+Passos:
+M0.0..M0.5  seis passos veiculares
+M1.0        pedestre verde
+M1.1        pedestre piscante
 
-Transicoes normais: 1 -> 2 -> 3 -> 4 -> 5 -> 6 -> 1.
-Se M0.6 estiver ativo ao fim de 2 ou 3, segue a P1 e depois P2 -> 4.
-Se estiver ativo ao fim de 5 ou 6, segue a P1 e depois P2 -> 1.
-M1.2 guarda qual via deve ser retomada.
+Auxiliares:
+M0.6 pedido
+M0.7 inicializacao
+M1.2 lado de retorno
+M2.0 habilitacao do unico TON
+M2.1 memoria FP da botoeira
+MW20 preset do passo
+T0 unico TON
+M10.5 pisca
 
-SIMBOLOS
---------
-Projeto13_Symbols.sdf contem somente I0.0 e Q0.0..Q0.7: 9 linhas.
-Os passos acima e demais bits internos usam enderecos absolutos no OB1 e
-nao precisam ser digitados na tabela de simbolos.
+Todos os antigos T1..T9 foram eliminados.
 
-TIMERS COMPARTILHADOS
----------------------
-T0  30 s     Passos 1 e 4
-T1   4 s     Passos 2 e 5
-T2   2 s     Passos 3 e 6
-T3  15 s     Pedestre verde
-T4   5 s     Pedestre piscante
-
-Total: 5 TON. O pisca de 500 ms usa M10.5 (Clock Memory 1 Hz). A reducao nao
-altera os passos do GRAFCET e evita timers/flags que nao representam passos.
+A Symbol Table continua minima: I0.0 e Q0.0..Q0.7.

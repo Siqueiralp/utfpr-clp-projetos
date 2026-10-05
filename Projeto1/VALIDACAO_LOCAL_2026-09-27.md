@@ -1,40 +1,63 @@
 # Tentativa de validação local — Projeto 1
 
-> **Nota:** este registro é histórico e se refere à versão anterior à revisão
-> 0.2, que reduziu a Symbol Table e compartilhou os timers. A versão atual
-> ainda precisa de uma nova compilação/execução no STEP 7 e PLCSIM.
+> **Nota histórica:** este registro descreve a tentativa de 27/09/2026.
+> Desde então o Projeto 1 foi revisado para a versão 0.4. A versão atual usa
+> um único timer `T0`, I/O simbólico e foi preparada para a CPU física
+> **313C-2 DP 6ES7 313-6CE01-0AB0** observada na bancada.
 
-Data: 27/09/2026. Estado: **inconclusivo**. A fonte foi importada, mas não foi possível confirmar a compilação nem executar a lógica no simulador.
+Data da tentativa: 27/09/2026. Estado: **inconclusivo**. A fonte foi importada,
+mas não foi possível confirmar a compilação nem executar a lógica no simulador.
 
-## Ambiente usado
+## Ambiente usado na tentativa histórica
 
-- SIMATIC Manager / STEP 7 Classic V5.7, instalado em `C:\Program Files (x86)\Siemens\Step7`.
-- S7-PLCSIM instalado e inicializado localmente.
-- Projeto de teste criado pelo assistente do STEP 7 em `C:\Program Files (x86)\Siemens\Step7\s7proj\S7_Pro3`. Ele está fora deste repositório.
-- CPU escolhida: CPU 314C-2 DP, referência `6ES7 314-6CG03-0AB0`, MPI 2. O assistente criou um OB1 inicial.
-- Fonte testada: `Projeto1_TOF.awl` desta pasta. A tabela de símbolos não foi importada, pois a lógica usa endereços absolutos.
+- SIMATIC Manager / STEP 7 Classic V5.7.
+- S7-PLCSIM.
+- Foi criada uma estação de teste com CPU 314C-2 DP; essa CPU **não corresponde**
+  ao hardware físico posteriormente identificado.
+- A fonte testada era anterior à versão 0.4 e usava endereços absolutos de I/O.
 
-## Procedimento e observações
+## Situação atual — versão 0.4
 
-1. Abri o SIMATIC Manager e criei o projeto `S7_Pro3` com a CPU acima e um OB1 inicial em STL.
-2. Selecionei `S7 Program(1) > Sources` e usei `Insert > External Source...` para importar `Projeto1_TOF.awl`. A fonte apareceu como `Projeto1_TOF` na lista.
-3. Acionei `Compile` no menu de contexto da fonte. O aplicativo `LAD/STL/FBD : Program blocks` abriu, mas permaneceu com a área de edição e a lista de erros vazias. Não apareceu relatório de compilação nem confirmação de que o OB1 foi substituído.
-4. Abri a própria fonte e, separadamente, o OB1 criado pelo assistente pelo SIMATIC Manager. Nos dois casos, a mesma janela `LAD/STL/FBD : Program blocks` continuou vazia, sem exibir o conteúdo do objeto. Não foi possível confirmar se a tentativa de compilação havia substituído o OB1.
-5. Em `File > Open` do editor, a lista continha apenas `Proj1`, `Projeto1-CLP-LAD`, `S7_Pro1` e `S7_Pro2`; o projeto novo `S7_Pro3` não aparecia. Fechei e reabri o editor pela fonte importada. Ele continuou vazio.
-6. Iniciei o S7-PLCSIM. A janela `S7-PLCSIM1` abriu com a CPU em `STOP` e visualizações de `IB 0`, `QB 0`, `MB 0`, `T 0` e `T 1`. Nenhum programa do Projeto 1 foi transferido para o simulador e a CPU não foi colocada em `RUN`.
+Hardware físico identificado:
 
-## Resultado
+- CPU: SIMATIC S7-300 CPU 313C-2 DP.
+- Referência: `6ES7 313-6CE01-0AB0`.
+- I/O digital integrado: 16 DI + 16 DO.
+- Endereços padrão do I/O integrado: `I124.0..I125.7` e
+  `Q124.0..Q125.7`.
 
-A importação da fonte e a inicialização do PLCSIM foram confirmadas. **Não há evidência de compilação bem-sucedida nem de funcionamento do semáforo.** O editor vazio impede ler eventuais erros e verificar o OB1 gerado. A ausência do projeto novo na lista do editor sugere um problema de reconhecimento/atualização do projeto, mas a causa não foi confirmada.
+A Symbol Table atual parte desses endereços padrão e associa:
 
-Antes de iniciar o simulador, o SIMATIC Manager mostrava `PLCSIM.MPI.1` na barra de status. Depois da abertura do PLCSIM, passou a mostrar `PLCSIM.TCPIP.1`, coerente com `PLCSIM(TCP/IP)` no simulador. Essa interface ainda não foi testada por transferência.
+- painel `I0` a `I124.0`;
+- painel `O0..O7` a `Q124.0..Q124.7`.
 
-## Para retomar a validação
+Isso ainda precisa ser confirmado no **HW Config da bancada**, pois os endereços
+podem ter sido remapeados. A fonte AWL foi alterada para usar símbolos de I/O;
+portanto, se o mapeamento real for diferente, basta alterar a SDF.
 
-1. Fazer o editor LAD/STL/FBD abrir o OB1 inicial de `S7_Pro3` e mostrar seu conteúdo. Só então recompilar a versão atual de `Projeto1_TOF` e registrar a lista de erros/avisos.
-2. Confirmar que a compilação substituiu o OB1 e que o bloco abre com as redes esperadas.
-3. Alinhar a interface PG/PC do SIMATIC Manager com a interface do PLCSIM, limpar a memória simulada (MRES), transferir o programa e iniciar `RUN`.
-4. Observar o ciclo normal `30 s / 4 s / 2 s / 30 s / 4 s / 2 s` e testar a travessia de `15 s + 5 s`.
-5. Confirmar especificamente os 6 timers compartilhados `T0..T5` e a importação da SDF mínima de 9 símbolos.
+## Correções aplicadas na versão 0.4
 
-Até completar esses passos, manter o Projeto 1 como **não validado no STEP 7/PLCSIM**.
+1. A lógica continua usando apenas um temporizador: `T0`.
+2. Foram removidos os atalhos `1 -> 6` e `4 -> 8`.
+3. A travessia de pedestre só é iniciada após o estado de 2 s com ambas as
+   vias vermelhas.
+4. Entradas e saídas externas passaram a ser simbólicas.
+5. O procedimento de deploy não recomenda mais MRES automático; primeiro deve
+   ser feito backup da estação física.
+
+## Validação necessária na bancada
+
+1. Fazer `Upload Station to PG` e guardar backup.
+2. Confirmar a CPU e os endereços em `HW Config`.
+3. Confirmar/ajustar `Projeto1_Symbols.sdf`.
+4. Configurar `MB10` como Clock Memory.
+5. Importar a Symbol Table antes da fonte AWL.
+6. Compilar `Projeto1_TOF.awl` e exigir **0 errors**.
+7. Transferir OB1 para a CPU em STOP.
+8. Colocar a CPU em RUN.
+9. Monitorar `MW20`, `T0`, a entrada do botão e as oito saídas.
+10. Validar o ciclo `30 / 4 / 2 / 30 / 4 / 2 s`.
+11. Validar o pedestre `15 + 5 s` sem eliminar o intervalo de ambas vermelhas.
+
+Até completar esses passos, o Projeto 1 continua **preparado, mas não validado
+fisicamente**.

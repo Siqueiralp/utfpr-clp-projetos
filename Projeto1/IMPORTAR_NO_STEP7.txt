@@ -1,27 +1,74 @@
 PROJETO 1 - SEMAFORO COM TOF MINIMO
 ====================================
 
+HARDWARE ALVO
+-------------
+CPU observada no painel:
+- SIMATIC S7-300 CPU 313C-2 DP;
+- referencia 6ES7 313-6CE01-0AB0;
+- I/O digital integrado: 16 DI + 16 DO 24 Vcc.
+
+Os enderecos padrao Siemens do I/O digital integrado desta CPU sao:
+- entradas: I124.0..I125.7;
+- saidas:   Q124.0..Q125.7.
+
+O painel didatico possui I0..I15 e O0..O15. Para o Projeto 1 foi preparado:
+- painel I0 -> I124.0;
+- painel O0..O7 -> Q124.0..Q124.7.
+
+IMPORTANTE: esses sao os enderecos padrao do I/O integrado da CPU. Antes do
+download fisico, abra o HW Config e confirme que eles nao foram remapeados.
+Se estiverem diferentes, ajuste SOMENTE Projeto1_Symbols.sdf. A fonte AWL
+agora usa nomes simbolicos para todas as entradas e saidas.
+
+RECURSOS INTERNOS
+-----------------
 A fonte usa apenas um temporizador: T0.
 
-Recursos internos:
 - MW20: estado 0..9;
-- MW22: preset do estado;
-- M0.0: pedido;
-- M0.1: pulso do TOF;
+- MW22: preset S5TIME do estado atual;
+- M0.0: pedido de pedestre pendente;
+- M0.1: pulso de partida do TOF;
 - M0.2: memoria FP da botoeira;
 - M0.3: inicializacao;
 - T0: unico TOF;
-- M10.5: pisca do pedestre.
+- M10.5: Clock Memory para o pisca do pedestre.
 
-A Symbol Table possui somente I0.0 e Q0.0..Q0.7.
+SEQUENCIA
+---------
+Ciclo normal:
+0 (30 s) -> 1 (4 s) -> 2 (2 s, ambas vermelhas) ->
+3 (30 s) -> 4 (4 s) -> 5 (2 s, ambas vermelhas) -> 0.
 
-Importacao:
-1. configure MB10 como Clock Memory;
-2. importe Projeto1_Symbols.sdf;
-3. importe Projeto1_TOF.awl em Sources;
-4. compile;
-5. abra OB1 e verifique a representacao no editor LAD/STL/FBD;
-6. faca MRES antes do primeiro teste.
+Pedido de pedestre:
+- nunca pula o intervalo de 2 s com ambas as vias vermelhas;
+- em 2, pedido leva a 6 -> 7 -> 3;
+- em 5, pedido leva a 8 -> 9 -> 0;
+- verde do pedestre: 15 s;
+- vermelho piscante: 5 s.
 
-O ciclo continua 30 / 4 / 2 / 30 / 4 / 2 s, com pedestre 15 + 5 s.
-A implementacao atual ainda precisa ser compilada e testada no STEP 7/PLCSIM.
+IMPORTACAO / DEPLOY
+-------------------
+1. Antes de alterar o CLP real, faca Upload Station to PG e salve um backup.
+2. Em Options -> Set PG/PC Interface, selecione o adaptador MPI real.
+3. Use PLC -> Display Accessible Nodes e confirme que a CPU aparece.
+4. Abra HW Config e confirme CPU 313C-2 DP 6ES7 313-6CE01-0AB0.
+5. Confirme os enderecos do I/O integrado. Se nao forem I124/Q124, edite a SDF.
+6. Nas propriedades da CPU, configure MB10 como Clock Memory.
+7. Importe Projeto1_Symbols.sdf na Symbol Table.
+8. Importe Projeto1_TOF.awl em S7 Program -> Sources.
+9. Compile a fonte e so continue com 0 errors.
+10. Abra OB1 e confirme que o bloco gerado possui as networks esperadas.
+11. Coloque a CPU em STOP antes do primeiro download do programa.
+12. Baixe OB1. Se alterou Clock Memory/HW Config, baixe tambem System Data.
+13. Coloque a CPU em RUN e monitore MW20, T0, I124.0 e Q124.0..Q124.7.
+14. Teste primeiro o ciclo normal e depois acione o painel I0.
+
+Nao fazer MRES automaticamente. MRES apaga a memoria da CPU e so deve ser usado
+quando realmente necessario e apos backup/autorizacao.
+
+STATUS
+------
+Versao 0.4 preparada para o hardware real e para compilacao no STEP 7 V5.7.
+Ainda requer confirmacao do HW Config e teste fisico no painel antes de ser
+considerada validada.

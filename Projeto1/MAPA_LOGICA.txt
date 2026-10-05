@@ -1,33 +1,67 @@
 MAPA LOGICO - PROJETO 1
 ========================
 
+Hardware alvo
+-------------
+CPU 313C-2 DP 6ES7 313-6CE01-0AB0.
+
+Mapeamento preparado para o I/O digital integrado padrao:
+Painel I0     -> I124.0
+Painel O0..O7 -> Q124.0..Q124.7
+
+Se o HW Config da bancada tiver enderecos remapeados, alterar somente a Symbol
+Table. A fonte AWL nao depende mais de enderecos absolutos de I/O.
+
 Implementacao minima
 --------------------
 MW20  Estado atual
 MW22  Preset S5TIME do estado atual
 M0.0  Pedido de pedestre pendente
 M0.1  Pulso de partida do unico TOF
-M0.2  Memoria da borda de I0.0
+M0.2  Memoria da borda de Botao_Pedestre
 M0.3  Inicializacao
 T0    Unico TOF
 M10.5 Clock Memory para o pisca
 
 Estados
 -------
-0  V1 vermelho / V2 verde      30 s
-1  V1 vermelho / V2 amarelo     4 s
-2  ambas vermelhas               2 s
-3  V1 verde / V2 vermelho       30 s
-4  V1 amarelo / V2 vermelho      4 s
-5  ambas vermelhas               2 s
-6  pedestre verde               15 s -> retorna para estado 3
-7  pedestre piscante             5 s -> estado 3
-8  pedestre verde               15 s -> retorna para estado 0
-9  pedestre piscante             5 s -> estado 0
+0  V1 vermelho / V2 verde       30 s
+1  V1 vermelho / V2 amarelo      4 s
+2  ambas vermelhas                2 s
+3  V1 verde / V2 vermelho        30 s
+4  V1 amarelo / V2 vermelho       4 s
+5  ambas vermelhas                2 s
+6  pedestre verde                15 s
+7  pedestre vermelho piscante     5 s -> estado 3
+8  pedestre verde                15 s
+9  pedestre vermelho piscante     5 s -> estado 0
+
+Transicoes principais
+---------------------
+0 -> 1 -> 2
+2 -> 3 sem pedido
+2 -> 6 com pedido
+6 -> 7 -> 3
+
+3 -> 4 -> 5
+5 -> 0 sem pedido
+5 -> 8 com pedido
+8 -> 9 -> 0
+
+O pedido nunca causa 1 -> 6 nem 4 -> 8. Portanto, o intervalo de seguranca de
+2 s com ambas as vias vermelhas sempre acontece antes da travessia.
 
 A origem da chamada de pedestre esta codificada no proprio estado. Nao existe
-mais bit Retoma_Via1 nem um bit para cada etapa.
+bit Retoma_Via1 nem um bit para cada etapa.
 
 Symbol Table
 ------------
-Somente I0.0 e Q0.0..Q0.7 precisam estar na tabela de simbolos.
+"Botao_Pedestre"      I124.0   painel I0
+"Verde_Via1"          Q124.0   painel O0
+"Amarelo_Via1"        Q124.1   painel O1
+"Vermelho_Via1"       Q124.2   painel O2
+"Verde_Via2"          Q124.3   painel O3
+"Amarelo_Via2"        Q124.4   painel O4
+"Vermelho_Via2"       Q124.5   painel O5
+"Verde_Pedestre"      Q124.6   painel O6
+"Vermelho_Pedestre"   Q124.7   painel O7
